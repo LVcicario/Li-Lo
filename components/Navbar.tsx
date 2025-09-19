@@ -3,17 +3,28 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, ShoppingBag, Search, Globe, DollarSign } from 'lucide-react'
+import { Menu, X, ShoppingBag, Search, Globe, DollarSign, User, Shield, Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useCartStore } from '@/lib/cart-store'
+import { useAuthStore } from '@/lib/auth-store'
+import { SearchModal } from '@/components/SearchModal'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [cartCount, setCartCount] = useState(0)
-  const [language, setLanguage] = useState<'EN' | 'FR'>('EN')
+  const { getTotalItems, toggleCart } = useCartStore()
+  const { user, isAdmin, isSeller } = useAuthStore()
+  const { currentLanguage, setLanguage, t, initializeLanguage } = useLanguageStore()
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+
+  useEffect(() => {
+    useCartStore.persist.rehydrate()
+    initializeLanguage()
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,11 +35,11 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '/collections', label: language === 'EN' ? 'COLLECTIONS' : 'COLLECTIONS' },
-    { href: '/sneakers', label: language === 'EN' ? 'ALL SNEAKERS' : 'TOUS LES SNEAKERS' },
-    { href: '/exclusive', label: language === 'EN' ? 'EXCLUSIVE' : 'EXCLUSIF' },
-    { href: '/limited-edition', label: language === 'EN' ? 'LIMITED EDITION' : 'ÉDITION LIMITÉE' },
-    { href: '/about', label: language === 'EN' ? 'ABOUT' : 'À PROPOS' },
+    { href: '/collections', label: t('nav.collections') },
+    { href: '/sneakers', label: t('nav.allSneakers') },
+    { href: '/exclusive', label: t('nav.exclusive') },
+    { href: '/limited-edition', label: t('nav.limitedEdition') },
+    { href: '/about', label: t('nav.about') },
   ]
 
   return (
@@ -76,7 +87,7 @@ export function Navbar() {
                   className="flex items-center space-x-1 px-3 py-2 hover:bg-white/10 rounded-full transition-colors text-sm font-mono"
                 >
                   <Globe className="w-4 h-4" />
-                  <span>{language}</span>
+                  <span>{currentLanguage.toUpperCase()}</span>
                 </button>
                 <AnimatePresence>
                   {showLangMenu && (
@@ -88,27 +99,27 @@ export function Navbar() {
                     >
                       <button
                         onClick={() => {
-                          setLanguage('EN')
+                          setLanguage('en')
                           setShowLangMenu(false)
                         }}
                         className={cn(
                           "block w-full px-4 py-2 text-left hover:bg-white/10 text-sm",
-                          language === 'EN' && 'bg-white/10'
+                          currentLanguage === 'en' && 'bg-white/10'
                         )}
                       >
-                        English
+                        🇬🇧 English
                       </button>
                       <button
                         onClick={() => {
-                          setLanguage('FR')
+                          setLanguage('fr')
                           setShowLangMenu(false)
                         }}
                         className={cn(
                           "block w-full px-4 py-2 text-left hover:bg-white/10 text-sm",
-                          language === 'FR' && 'bg-white/10'
+                          currentLanguage === 'fr' && 'bg-white/10'
                         )}
                       >
-                        Français
+                        🇫🇷 Français
                       </button>
                     </motion.div>
                   )}
@@ -163,17 +174,51 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
 
-              <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <button
+                onClick={() => setShowSearch(true)}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Search sneakers"
+              >
                 <Search className="w-5 h-5" />
               </button>
-              <Link href="/cart" className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
+
+              {/* Role-based navigation */}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors group"
+                  title="Admin Dashboard"
+                >
+                  <Shield className="w-5 h-5 text-red-400 group-hover:text-red-300" />
+                </Link>
+              )}
+              {isSeller && !isAdmin && (
+                <Link
+                  href="/seller"
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors group"
+                  title="Seller Dashboard"
+                >
+                  <Package className="w-5 h-5 text-blue-400 group-hover:text-blue-300" />
+                </Link>
+              )}
+              <Link
+                href={user ? '/account/dashboard' : '/auth/login'}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+
+              <button
+                onClick={toggleCart}
+                className="relative p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
                 <ShoppingBag className="w-5 h-5" />
-                {cartCount > 0 && (
+                {getTotalItems() > 0 && (
                   <span className="absolute -top-1 -right-1 bg-accent text-black text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {cartCount}
+                    {getTotalItems()}
                   </span>
                 )}
-              </Link>
+              </button>
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="lg:hidden p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -215,6 +260,9 @@ export function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Search Modal */}
+      <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
     </>
   )
 }

@@ -137,7 +137,7 @@ export default function LimitedEditionPage() {
             transition={{ duration: 1, type: 'spring' }}
             className="absolute inset-0 pointer-events-none"
           >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-purple-500/5 to-pink-500/5 blur-3xl rounded-full" />
           </motion.div>
         )}
       </motion.div>
@@ -284,7 +284,7 @@ export default function LimitedEditionPage() {
                 </div>
 
                 <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  className="absolute -inset-1 bg-gradient-to-r from-purple-500/5 to-pink-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                 />
               </motion.div>
             ))}

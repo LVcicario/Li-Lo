@@ -225,7 +225,7 @@ export default function CollectionsPage() {
                       initial={{ opacity: 0 }}
                       whileHover={{ opacity: 1 }}
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-r ${collection.gradient} opacity-20 blur-xl`} />
+                      <div className={`absolute inset-0 bg-gradient-to-r ${collection.gradient} opacity-5 blur-xl`} />
                     </motion.div>
                   </motion.div>
                 )

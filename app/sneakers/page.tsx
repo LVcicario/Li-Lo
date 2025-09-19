@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -9,12 +10,16 @@ import { cn } from '@/lib/utils'
 import { iconicSneakers, formatCurrency, type SneakerData } from '@/lib/sneaker-data'
 
 export default function SneakersPage() {
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('q') || ''
+
   const [sneakers, setSneakers] = useState<SneakerData[]>([])
   const [filteredSneakers, setFilteredSneakers] = useState<SneakerData[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     brands: [] as string[],
     categories: [] as string[],
@@ -23,12 +28,32 @@ export default function SneakersPage() {
   })
 
   useEffect(() => {
-    setSneakers(iconicSneakers)
-    setFilteredSneakers(iconicSneakers)
+    // Simulate loading
+    const loadData = async () => {
+      setLoading(true)
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800))
+
+      setSneakers(iconicSneakers)
+      setFilteredSneakers(iconicSneakers)
+      setLoading(false)
+    }
+
+    loadData()
   }, [])
 
   useEffect(() => {
     let result = [...sneakers]
+
+    // Apply search query filter
+    if (searchQuery.trim()) {
+      result = result.filter(s =>
+        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
 
     if (filters.brands.length > 0) {
       result = result.filter(s => filters.brands.includes(s.brand))
@@ -61,7 +86,7 @@ export default function SneakersPage() {
     }
 
     setFilteredSneakers(result)
-  }, [filters, sortBy, sneakers])
+  }, [filters, sortBy, sneakers, searchQuery])
 
   const uniqueBrands = Array.from(new Set(sneakers.map(s => s.brand)))
   const uniqueCategories = Array.from(new Set(sneakers.map(s => s.category)))
@@ -75,11 +100,17 @@ export default function SneakersPage() {
           className="mb-8"
         >
           <h1 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            ICONIC COLLECTION
+            {searchQuery ? `SEARCH: "${searchQuery.toUpperCase()}"` : 'ICONIC COLLECTION'}
           </h1>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            {filteredSneakers.length} LEGENDARY ITEMS • AUTHENTICATED • INVESTMENT GRADE
+            {filteredSneakers.length} {searchQuery ? 'RESULTS' : 'LEGENDARY ITEMS'} • AUTHENTICATED • INVESTMENT GRADE
           </p>
+          {searchQuery && filteredSneakers.length === 0 && (
+            <div className="mt-8 p-6 border border-white/10 bg-white/5 rounded-lg">
+              <p className="text-gray-300 mb-2">No sneakers found for "{searchQuery}"</p>
+              <p className="text-gray-400 text-sm">Try searching for different keywords or browse our full collection below.</p>
+            </div>
+          )}
         </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -259,17 +290,29 @@ export default function SneakersPage() {
               </div>
             </div>
 
-            <motion.div
-              layout
-              className={cn(
-                "grid gap-6",
-                viewMode === 'grid'
-                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                  : "grid-cols-1"
-              )}
-            >
-              <AnimatePresence>
-                {filteredSneakers.map((sneaker, index) => (
+            {loading ? (
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(9)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-square bg-gray-800 rounded-lg mb-4"></div>
+                    <div className="h-4 bg-gray-800 rounded mb-2"></div>
+                    <div className="h-4 bg-gray-800 rounded w-2/3 mb-2"></div>
+                    <div className="h-6 bg-gray-800 rounded w-1/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                layout
+                className={cn(
+                  "grid gap-6",
+                  viewMode === 'grid'
+                    ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                    : "grid-cols-1"
+                )}
+              >
+                <AnimatePresence>
+                  {filteredSneakers.map((sneaker, index) => (
                   <motion.div
                     key={sneaker.id}
                     layout
@@ -395,7 +438,8 @@ export default function SneakersPage() {
                   </motion.div>
                 ))}
               </AnimatePresence>
-            </motion.div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

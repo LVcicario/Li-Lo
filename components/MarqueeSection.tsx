@@ -1,9 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function MarqueeSection() {
-  const text = "ULTRA RARE • PREMIUM COLLECTION • EXCLUSIVE ACCESS • LIMITED EDITION • "
+  const { t } = useLanguageStore()
+  const text = t('pages.home.ultraRareCollection')
 
   return (
     <section className="relative py-8 border-y border-white/10 overflow-hidden bg-black">

@@ -110,7 +110,7 @@ export function SneakerShowcase3D() {
                   {index === 1 && (
                     <motion.div
                       animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
-                      className="absolute inset-0 bg-gradient-to-t from-red-500/20 via-transparent to-transparent pointer-events-none"
+                      className="absolute inset-0 bg-gradient-to-t from-red-500/5 via-transparent to-transparent pointer-events-none"
                     />
                   )}
 
@@ -166,7 +166,7 @@ export function SneakerShowcase3D() {
                       scale: [0.8, 1.2, 1.2, 0.8],
                     } : { opacity: 0 }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute -inset-1 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 rounded-lg blur-lg pointer-events-none"
+                    className="absolute -inset-1 bg-gradient-to-r from-red-500/10 via-purple-500/10 to-blue-500/10 rounded-lg blur-lg pointer-events-none"
                   />
                 )}
               </motion.div>

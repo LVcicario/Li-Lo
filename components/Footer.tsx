@@ -3,26 +3,29 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Instagram, Twitter, Youtube, Mail } from 'lucide-react'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function Footer() {
+  const { t } = useLanguageStore()
+
   const footerLinks = {
-    Shop: [
-      { href: '/sneakers', label: 'All Sneakers' },
-      { href: '/exclusive', label: 'Exclusive Collection' },
-      { href: '/limited-edition', label: 'Limited Edition' },
+    [t('footer.shop')]: [
+      { href: '/sneakers', label: t('nav.allSneakers') },
+      { href: '/exclusive', label: t('nav.exclusive') },
+      { href: '/limited-edition', label: t('nav.limitedEdition') },
       { href: '/new-arrivals', label: 'New Arrivals' },
     ],
-    Support: [
-      { href: '/size-guide', label: 'Size Guide' },
-      { href: '/shipping', label: 'Shipping' },
-      { href: '/returns', label: 'Returns' },
-      { href: '/contact', label: 'Contact' },
+    [t('footer.support')]: [
+      { href: '/size-guide', label: t('footer.sizeGuide') },
+      { href: '/shipping', label: t('footer.shipping') },
+      { href: '/returns', label: t('footer.returns') },
+      { href: '/contact', label: t('footer.contact') },
     ],
-    Company: [
-      { href: '/about', label: 'About Us' },
-      { href: '/authenticity', label: 'Authenticity' },
-      { href: '/terms', label: 'Terms' },
-      { href: '/privacy', label: 'Privacy' },
+    [t('footer.company')]: [
+      { href: '/about', label: t('footer.about') },
+      { href: '/authenticity', label: t('footer.authenticity') },
+      { href: '/legal/terms', label: t('footer.termsOfService') },
+      { href: '/legal/privacy', label: t('footer.privacyPolicy') },
     ],
   }
 
@@ -45,8 +48,8 @@ export function Footer() {
             >
               <h3 className="text-3xl font-bold tracking-tighter mb-4">LI-LO</h3>
               <p className="font-mono text-sm text-gray-400 mb-6">
-                ULTRA RARE PREMIUM SNEAKERS<br />
-                FOR TRUE COLLECTORS
+                {t('pages.home.ultraRareCollection').replace(' • ', ' ')}<br />
+                {t('hero.forTrueConnoisseurs')}
               </p>
               <div className="flex space-x-4">
                 {socialLinks.map((social) => {
@@ -74,7 +77,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              <h4 className="font-mono text-sm tracking-wider mb-4">{category.toUpperCase()}</h4>
+              <h4 className="font-mono text-sm tracking-wider mb-4">{category}</h4>
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.href}>

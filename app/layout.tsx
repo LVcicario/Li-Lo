@@ -3,6 +3,8 @@ import './globals.css'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
 import { ClientProviders } from '@/components/ClientProviders'
+import CookieConsent from '@/components/CookieConsent'
+import CartSlideOver from '@/components/CartSlideOver'
 
 export const metadata: Metadata = {
   title: 'Li-Lo | Rare & Ultra Premium Sneakers',
@@ -24,6 +26,8 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <CookieConsent />
+        <CartSlideOver />
       </body>
     </html>
   )

@@ -6,9 +6,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Star, TrendingUp } from 'lucide-react'
 import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function FeaturedCollection() {
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const { t } = useLanguageStore()
 
   // Select 4 featured sneakers from our collection
   const featuredSneakers = [
@@ -28,10 +30,10 @@ export function FeaturedCollection() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            FEATURED DROPS
+            {t('pages.home.featuredDrops')}
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            HANDPICKED EXCELLENCE FROM OUR VAULT
+            {t('pages.home.handpickedExcellence')}
           </p>
         </motion.div>
 
@@ -49,7 +51,7 @@ export function FeaturedCollection() {
                 <div className="relative overflow-hidden bg-gradient-to-b from-gray-900 to-black">
                   {sneaker.featured && (
                     <span className="absolute top-4 left-4 z-10 px-3 py-1 bg-accent text-black text-xs font-mono tracking-wider">
-                      FEATURED
+                      {t('product.featured')}
                     </span>
                   )}
                   {sneaker.category === 'grail' && (
@@ -58,7 +60,7 @@ export function FeaturedCollection() {
                       transition={{ duration: 2, repeat: Infinity }}
                       className="absolute top-4 right-4 z-10 px-3 py-1 bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-xs font-mono font-bold"
                     >
-                      GRAIL
+                      {t('product.grail')}
                     </motion.span>
                   )}
                   <div className="aspect-square relative">
@@ -104,7 +106,7 @@ export function FeaturedCollection() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full mt-2 py-3 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors flex items-center justify-center group"
               >
-                ADD TO CART
+                {t('product.addToCart')}
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </motion.div>
@@ -121,7 +123,7 @@ export function FeaturedCollection() {
             href="/collections"
             className="inline-flex items-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white hover:text-black transition-all duration-300"
           >
-            VIEW ALL COLLECTIONS
+            {t('filters.viewAll')} {t('pages.collections.title')}
             <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </motion.div>

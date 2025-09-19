@@ -4,26 +4,29 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight } from 'lucide-react'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function CategoryShowcase() {
+  const { t } = useLanguageStore()
+
   const categories = [
     {
-      name: "EXCLUSIVE",
-      description: "The pinnacle of exclusivity",
+      name: t('nav.exclusive'),
+      description: t('pages.home.beyondLimits'),
       image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&h=800&fit=crop",
       href: "/exclusive",
       count: "6 GRAILS"
     },
     {
-      name: "LIMITED EDITION",
-      description: "Curated vault excellence",
+      name: t('nav.limitedEdition'),
+      description: t('pages.home.handpickedExcellence'),
       image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=1200&h=800&fit=crop",
       href: "/limited-edition",
       count: "9 ITEMS"
     },
     {
-      name: "ALL COLLECTION",
-      description: "Complete iconic showcase",
+      name: t('pages.home.iconicCollection'),
+      description: t('pages.home.legendaryItems'),
       image: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=1200&h=800&fit=crop",
       href: "/sneakers",
       count: "16 LEGENDS"
@@ -40,10 +43,10 @@ export function CategoryShowcase() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            EXPLORE CATEGORIES
+            {t('nav.collections').toUpperCase()}
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            DISCOVER YOUR PERFECT COLLECTION
+            {t('hero.subtitle').toUpperCase()}
           </p>
         </motion.div>
 
@@ -71,7 +74,7 @@ export function CategoryShowcase() {
                     <h3 className="text-3xl font-bold tracking-tighter mb-2">{category.name}</h3>
                     <p className="text-sm text-gray-400 mb-4">{category.description}</p>
                     <div className="flex items-center space-x-2 text-sm font-mono tracking-wider group-hover:text-accent transition-colors">
-                      <span>EXPLORE</span>
+                      <span>{t('product.explore')}</span>
                       <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                     </div>
                   </div>

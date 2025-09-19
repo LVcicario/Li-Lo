@@ -1,8 +1,1 @@
-{
-  "/collections/page": "app/collections/page.js",
-  "/sneakers/[id]/page": "app/sneakers/[id]/page.js",
-  "/sneakers/page": "app/sneakers/page.js",
-  "/page": "app/page.js",
-  "/limited-edition/page": "app/limited-edition/page.js",
-  "/exclusive/page": "app/exclusive/page.js"
-}
+{}

@@ -256,7 +256,7 @@ export default function NewArrivalsPage() {
 
               {item.isHot && (
                 <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-red-500/20 to-orange-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  className="absolute -inset-1 bg-gradient-to-r from-red-500/5 to-orange-500/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                 />
               )}
             </motion.div>

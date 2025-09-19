@@ -8,9 +8,11 @@ import { ArrowLeft, ShoppingBag, Heart, Share2, Star, Shield, Truck, RefreshCw }
 import { cn } from '@/lib/utils'
 import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
 import { useParams } from 'next/navigation'
+import { useCartStore } from '@/lib/cart-store'
 
 export default function SneakerDetailPage() {
   const params = useParams()
+  const { addItem } = useCartStore()
   const [selectedSize, setSelectedSize] = useState<number | null>(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -39,7 +41,24 @@ export default function SneakerDetailPage() {
       alert('Please select a size')
       return
     }
-    console.log('Adding to cart:', { sneaker, size: selectedSize, quantity })
+    try {
+      addItem({
+        id: sneaker.id.toString(),
+        name: sneaker.name,
+        price: sneaker.price,
+        size: selectedSize.toString(),
+        quantity: quantity,
+        image: sneaker.images[0]
+      })
+
+      // Show success feedback (optional)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Successfully added to cart:', { sneaker: sneaker.name, size: selectedSize, quantity })
+      }
+    } catch (error) {
+      console.error('Failed to add item to cart:', error)
+      // Could show error toast here
+    }
   }
 
   return (

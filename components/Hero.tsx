@@ -4,31 +4,33 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useLanguageStore } from '@/lib/i18n'
 
 export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const { t } = useLanguageStore()
 
   const slides = [
     {
-      title: "ULTRA RARE",
-      subtitle: "COLLECTION 2024",
-      description: "THE MOST EXCLUSIVE SNEAKERS ON EARTH",
+      title: t('hero.ultraRare'),
+      subtitle: t('hero.collection2024'),
+      description: t('hero.mostExclusiveSneakers'),
       image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1920&h=1080&fit=crop",
-      cta: "EXPLORE RARE"
+      cta: t('hero.exploreRare')
     },
     {
-      title: "PREMIUM LEGACY",
-      subtitle: "LIMITED EDITION",
-      description: "WHERE ART MEETS FOOTWEAR",
+      title: t('hero.premiumLegacy'),
+      subtitle: t('hero.limitedEdition'),
+      description: t('hero.whereArtMeetsFootwear'),
       image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1920&h=1080&fit=crop",
-      cta: "SHOP PREMIUM"
+      cta: t('hero.shopPremium')
     },
     {
-      title: "COLLECTOR'S VAULT",
-      subtitle: "EXCLUSIVE ACCESS",
-      description: "FOR TRUE CONNOISSEURS ONLY",
+      title: t('hero.collectorsVault'),
+      subtitle: t('hero.exclusiveAccess'),
+      description: t('hero.forTrueConnoisseurs'),
       image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=1920&h=1080&fit=crop",
-      cta: "GET ACCESS"
+      cta: t('hero.getAccess')
     }
   ]
 
@@ -121,7 +123,7 @@ export function Hero() {
                 href="/about"
                 className="inline-flex items-center justify-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white/10 transition-all duration-300"
               >
-                LEARN MORE
+                {t('hero.learnMore')}
               </Link>
             </motion.div>
           </motion.div>

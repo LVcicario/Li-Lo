@@ -1,0 +1,47 @@
+# Robots.txt for Li-Lo
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://li-lo.com/sitemap.xml
+Sitemap: https://li-lo.com/sitemap-products.xml
+
+# Disallow admin and account areas
+Disallow: /admin/
+Disallow: /account/
+Disallow: /api/
+Disallow: /checkout/success
+
+# Allow search engines to access important pages
+Allow: /sneakers
+Allow: /collections
+Allow: /exclusive
+Allow: /limited-edition
+Allow: /about
+Allow: /contact
+Allow: /size-guide
+Allow: /shipping
+Allow: /returns
+
+# Crawl delay (in seconds)
+Crawl-delay: 1
+
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
