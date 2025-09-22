@@ -5,16 +5,17 @@ import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Filter, X, Grid, List, TrendingUp, Award, Lock, Shield } from 'lucide-react'
+import { Filter, X, Grid, List, TrendingUp, Award, Lock, Shield, Package } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { iconicSneakers, formatCurrency, type SneakerData } from '@/lib/sneaker-data'
+import { getProducts, getBrands, getCategories, formatCurrency, type ProductData, type ProductFilters, type ProductSort } from '@/lib/product-data'
 
 export default function SneakersPage() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get('q') || ''
 
-  const [sneakers, setSneakers] = useState<SneakerData[]>([])
-  const [filteredSneakers, setFilteredSneakers] = useState<SneakerData[]>([])
+  const [products, setProducts] = useState<ProductData[]>([])
+  const [brands, setBrands] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
@@ -23,73 +24,89 @@ export default function SneakersPage() {
   const [filters, setFilters] = useState({
     brands: [] as string[],
     categories: [] as string[],
-    priceRange: [0, 10000000],
-    sizes: [] as number[],
+    category_types: [] as string[],
+    priceRange: [0, 100000] as [number, number],
+    sizes: [] as string[],
+    in_stock_only: false,
   })
 
+  // Load initial data
   useEffect(() => {
-    // Simulate loading
     const loadData = async () => {
       setLoading(true)
+      try {
+        const [productsData, brandsData, categoriesData] = await Promise.all([
+          getProducts(
+            searchQuery ? { search: searchQuery } : {},
+            getSortConfig(sortBy)
+          ),
+          getBrands(),
+          getCategories()
+        ])
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800))
-
-      setSneakers(iconicSneakers)
-      setFilteredSneakers(iconicSneakers)
-      setLoading(false)
+        setProducts(productsData)
+        setBrands(brandsData)
+        setCategories(categoriesData)
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadData()
-  }, [])
+  }, [searchQuery])
 
+  // Apply filters and sorting when they change
   useEffect(() => {
-    let result = [...sneakers]
+    const applyFilters = async () => {
+      if (loading) return
 
-    // Apply search query filter
-    if (searchQuery.trim()) {
-      result = result.filter(s =>
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.category.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      setLoading(true)
+      try {
+        const productFilters: ProductFilters = {}
+
+        if (searchQuery) productFilters.search = searchQuery
+        if (filters.brands.length > 0) productFilters.brands = filters.brands
+        if (filters.categories.length > 0) productFilters.categories = filters.categories
+        if (filters.category_types.length > 0) productFilters.category_types = filters.category_types
+        if (filters.priceRange[0] > 0 || filters.priceRange[1] < 100000) {
+          productFilters.price_range = filters.priceRange
+        }
+        if (filters.sizes.length > 0) productFilters.sizes = filters.sizes
+        if (filters.in_stock_only) productFilters.in_stock_only = true
+
+        const productsData = await getProducts(productFilters, getSortConfig(sortBy))
+        setProducts(productsData)
+      } catch (error) {
+        console.error('Error applying filters:', error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (filters.brands.length > 0) {
-      result = result.filter(s => filters.brands.includes(s.brand))
-    }
-    if (filters.categories.length > 0) {
-      result = result.filter(s => filters.categories.includes(s.category))
-    }
+    applyFilters()
+  }, [filters, sortBy])
 
-    result = result.filter(s => s.price >= filters.priceRange[0] && s.price <= filters.priceRange[1])
-
+  const getSortConfig = (sortBy: string): ProductSort => {
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => a.price - b.price)
-        break
+        return { field: 'base_price', direction: 'asc' }
       case 'price-high':
-        result.sort((a, b) => b.price - a.price)
-        break
+        return { field: 'base_price', direction: 'desc' }
       case 'rarity':
-        result.sort((a, b) => b.rarity.rating - a.rarity.rating)
-        break
-      case 'trending':
-        result.sort((a, b) => b.valueTrend.percentage - a.valueTrend.percentage)
-        break
+        return { field: 'rarity_score', direction: 'desc' }
       case 'name':
-        result.sort((a, b) => a.name.localeCompare(b.name))
-        break
+        return { field: 'name', direction: 'asc' }
+      case 'release-date':
+        return { field: 'release_date', direction: 'desc' }
+      case 'stock':
+        return { field: 'total_stock', direction: 'desc' }
       case 'featured':
-        result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-        break
+      default:
+        return { field: 'featured_rank', direction: 'asc' }
     }
-
-    setFilteredSneakers(result)
-  }, [filters, sortBy, sneakers, searchQuery])
-
-  const uniqueBrands = Array.from(new Set(sneakers.map(s => s.brand)))
-  const uniqueCategories = Array.from(new Set(sneakers.map(s => s.category)))
+  }
 
   return (
     <div className="min-h-screen bg-black pt-24">
@@ -103,9 +120,9 @@ export default function SneakersPage() {
             {searchQuery ? `SEARCH: "${searchQuery.toUpperCase()}"` : 'ICONIC COLLECTION'}
           </h1>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            {filteredSneakers.length} {searchQuery ? 'RESULTS' : 'LEGENDARY ITEMS'} • AUTHENTICATED • INVESTMENT GRADE
+            {products.length} {searchQuery ? 'RESULTS' : 'LEGENDARY ITEMS'} • AUTHENTICATED • INVESTMENT GRADE
           </p>
-          {searchQuery && filteredSneakers.length === 0 && (
+          {searchQuery && products.length === 0 && !loading && (
             <div className="mt-8 p-6 border border-white/10 bg-white/5 rounded-lg">
               <p className="text-gray-300 mb-2">No sneakers found for "{searchQuery}"</p>
               <p className="text-gray-400 text-sm">Try searching for different keywords or browse our full collection below.</p>
@@ -133,27 +150,27 @@ export default function SneakersPage() {
                   <div>
                     <h3 className="font-mono text-sm tracking-wider mb-4">BRANDS</h3>
                     <div className="space-y-2">
-                      {uniqueBrands.map(brand => (
-                        <label key={brand} className="flex items-center space-x-2 cursor-pointer">
+                      {brands.map(brand => (
+                        <label key={brand.slug} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={filters.brands.includes(brand)}
+                            checked={filters.brands.includes(brand.slug)}
                             onChange={(e) => {
                               if (e.target.checked) {
                                 setFilters(prev => ({
                                   ...prev,
-                                  brands: [...prev.brands, brand]
+                                  brands: [...prev.brands, brand.slug]
                                 }))
                               } else {
                                 setFilters(prev => ({
                                   ...prev,
-                                  brands: prev.brands.filter(b => b !== brand)
+                                  brands: prev.brands.filter(b => b !== brand.slug)
                                 }))
                               }
                             }}
                             className="w-4 h-4 bg-transparent border border-white/30"
                           />
-                          <span className="text-sm">{brand}</span>
+                          <span className="text-sm">{brand.name}</span>
                         </label>
                       ))}
                     </div>
@@ -162,27 +179,56 @@ export default function SneakersPage() {
                   <div>
                     <h3 className="font-mono text-sm tracking-wider mb-4">CATEGORIES</h3>
                     <div className="space-y-2">
-                      {uniqueCategories.map(category => (
-                        <label key={category} className="flex items-center space-x-2 cursor-pointer">
+                      {categories.map(category => (
+                        <label key={category.slug} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={filters.categories.includes(category)}
+                            checked={filters.categories.includes(category.slug)}
                             onChange={(e) => {
                               if (e.target.checked) {
                                 setFilters(prev => ({
                                   ...prev,
-                                  categories: [...prev.categories, category]
+                                  categories: [...prev.categories, category.slug]
                                 }))
                               } else {
                                 setFilters(prev => ({
                                   ...prev,
-                                  categories: prev.categories.filter(c => c !== category)
+                                  categories: prev.categories.filter(c => c !== category.slug)
                                 }))
                               }
                             }}
                             className="w-4 h-4 bg-transparent border border-white/30"
                           />
-                          <span className="text-sm uppercase">{category}</span>
+                          <span className="text-sm uppercase">{category.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-mono text-sm tracking-wider mb-4">TYPE</h3>
+                    <div className="space-y-2">
+                      {['grail', 'exclusive', 'limited', 'rare'].map(type => (
+                        <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={filters.category_types.includes(type)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  category_types: [...prev.category_types, type]
+                                }))
+                              } else {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  category_types: prev.category_types.filter(t => t !== type)
+                                }))
+                              }
+                            }}
+                            className="w-4 h-4 bg-transparent border border-white/30"
+                          />
+                          <span className="text-sm uppercase">{type}</span>
                         </label>
                       ))}
                     </div>
@@ -210,7 +256,7 @@ export default function SneakersPage() {
                         {formatCurrency(5000, currency)} - {formatCurrency(20000, currency)}
                       </button>
                       <button
-                        onClick={() => setFilters(prev => ({ ...prev, priceRange: [20000, 10000000] }))}
+                        onClick={() => setFilters(prev => ({ ...prev, priceRange: [20000, 100000] }))}
                         className="block w-full text-left text-sm hover:text-white transition-colors"
                       >
                         Above {formatCurrency(20000, currency)}
@@ -218,12 +264,34 @@ export default function SneakersPage() {
                     </div>
                   </div>
 
+                  <div>
+                    <h3 className="font-mono text-sm tracking-wider mb-4">AVAILABILITY</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.in_stock_only}
+                          onChange={(e) => {
+                            setFilters(prev => ({
+                              ...prev,
+                              in_stock_only: e.target.checked
+                            }))
+                          }}
+                          className="w-4 h-4 bg-transparent border border-white/30"
+                        />
+                        <span className="text-sm">IN STOCK ONLY</span>
+                      </label>
+                    </div>
+                  </div>
+
                   <button
                     onClick={() => setFilters({
                       brands: [],
                       categories: [],
-                      priceRange: [0, 10000000],
-                      sizes: []
+                      category_types: [],
+                      priceRange: [0, 100000],
+                      sizes: [],
+                      in_stock_only: false,
                     })}
                     className="w-full py-2 border border-white/30 font-mono text-sm tracking-wider hover:bg-white hover:text-black transition-colors"
                   >
@@ -263,7 +331,8 @@ export default function SneakersPage() {
                   <option value="price-low">PRICE: LOW TO HIGH</option>
                   <option value="price-high">PRICE: HIGH TO LOW</option>
                   <option value="rarity">RARITY</option>
-                  <option value="trending">TRENDING</option>
+                  <option value="release-date">RELEASE DATE</option>
+                  <option value="stock">STOCK LEVEL</option>
                   <option value="name">NAME</option>
                 </select>
 
@@ -312,9 +381,9 @@ export default function SneakersPage() {
                 )}
               >
                 <AnimatePresence>
-                  {filteredSneakers.map((sneaker, index) => (
+                  {products.map((product, index) => (
                   <motion.div
-                    key={sneaker.id}
+                    key={product.id}
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -325,7 +394,7 @@ export default function SneakersPage() {
                       viewMode === 'list' && "flex space-x-6"
                     )}
                   >
-                    <Link href={`/sneakers/${sneaker.id}`} className={cn(
+                    <Link href={`/sneakers/${product.slug}`} className={cn(
                       viewMode === 'list' && "flex space-x-6 flex-1"
                     )}>
                       <div className={cn(
@@ -333,15 +402,15 @@ export default function SneakersPage() {
                         viewMode === 'list' ? "w-48 h-48" : "aspect-square"
                       )}>
                         <Image
-                          src={sneaker.images[0]}
-                          alt={sneaker.name}
+                          src={product.images[0]?.url || '/placeholder-sneaker.jpg'}
+                          alt={product.name}
                           fill
                           className="object-cover group-hover:scale-110 transition-transform duration-500"
                         />
 
                         {/* Badges */}
                         <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
-                          {sneaker.category === 'grail' && (
+                          {product.category_type === 'grail' && (
                             <motion.span
                               animate={{ opacity: [0.7, 1, 0.7] }}
                               transition={{ duration: 2, repeat: Infinity }}
@@ -350,36 +419,44 @@ export default function SneakersPage() {
                               GRAIL
                             </motion.span>
                           )}
-                          {sneaker.stock === 0 && (
+                          {!product.in_stock && (
                             <span className="px-2 py-1 bg-red-500 text-white text-xs font-mono font-bold">
                               SOLD OUT
                             </span>
                           )}
-                          {sneaker.rarity.rating >= 9 && (
+                          {product.rarity_score >= 9 && (
                             <span className="px-2 py-1 bg-purple-500 text-white text-xs font-mono font-bold flex items-center gap-1">
                               <Award className="w-3 h-3" />
                               RARE
                             </span>
                           )}
-                          {sneaker.authenticity.certificate && (
+                          {product.has_authenticity_certificate && (
                             <span className="px-2 py-1 bg-green-500/20 border border-green-500 text-green-500 text-xs font-mono flex items-center gap-1">
                               <Shield className="w-3 h-3" />
+                            </span>
+                          )}
+                          {product.total_stock > 0 && product.total_stock <= 3 && (
+                            <span className="px-2 py-1 bg-orange-500 text-white text-xs font-mono font-bold flex items-center gap-1">
+                              <Package className="w-3 h-3" />
+                              LOW STOCK
                             </span>
                           )}
                         </div>
 
                         {/* Value Trend */}
-                        {sneaker.valueTrend.percentage > 0 && (
+                        {product.value_trend_percentage && product.value_trend_percentage > 0 && (
                           <div className="absolute top-2 right-2 px-2 py-1 bg-black/80 backdrop-blur-sm text-green-500 text-xs font-mono flex items-center gap-1">
                             <TrendingUp className="w-3 h-3" />
-                            +{sneaker.valueTrend.percentage}%
+                            +{product.value_trend_percentage}%
                           </div>
                         )}
 
                         {/* Edition Badge */}
-                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm text-white text-xs font-mono">
-                          {sneaker.edition}
-                        </div>
+                        {product.edition_name && (
+                          <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/80 backdrop-blur-sm text-white text-xs font-mono">
+                            {product.edition_name}
+                          </div>
+                        )}
                       </div>
 
                       <div className={cn(
@@ -388,18 +465,18 @@ export default function SneakersPage() {
                         viewMode === 'list' && "flex-1 flex flex-col justify-center"
                       )}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-mono text-gray-500">{sneaker.brand}</span>
-                          <span className="text-xs font-mono text-gray-400">{sneaker.releaseYear}</span>
+                          <span className="text-xs font-mono text-gray-500">{product.brand.name}</span>
+                          <span className="text-xs font-mono text-gray-400">{product.release_year}</span>
                         </div>
-                        <h3 className="font-bold text-lg mb-1">{sneaker.name}</h3>
-                        <p className="text-xs text-gray-400 mb-2">{sneaker.color}</p>
+                        <h3 className="font-bold text-lg mb-1">{product.name}</h3>
+                        <p className="text-xs text-gray-400 mb-2">{product.colorway}</p>
 
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <p className="text-2xl font-bold">{formatCurrency(sneaker.price, currency)}</p>
-                            {sneaker.resaleValue > sneaker.price && (
+                            <p className="text-2xl font-bold">{formatCurrency(product.base_price, currency)}</p>
+                            {product.resale_value && product.resale_value > product.base_price && (
                               <p className="text-xs text-gray-500">
-                                Resale: {formatCurrency(sneaker.resaleValue, currency)}
+                                Resale: {formatCurrency(product.resale_value, currency)}
                               </p>
                             )}
                           </div>
@@ -412,7 +489,7 @@ export default function SneakersPage() {
                                     key={i}
                                     className={cn(
                                       "w-1.5 h-1.5 rounded-full",
-                                      i < Math.ceil(sneaker.rarity.rating / 2)
+                                      i < Math.ceil(product.rarity_score / 2)
                                         ? "bg-yellow-500"
                                         : "bg-gray-700"
                                     )}
@@ -420,17 +497,17 @@ export default function SneakersPage() {
                                 ))}
                               </div>
                             </div>
-                            {sneaker.stock > 0 && (
+                            {product.in_stock && (
                               <p className="text-xs text-gray-500 mt-1">
-                                {sneaker.stock} available
+                                {product.total_stock} available
                               </p>
                             )}
                           </div>
                         </div>
 
-                        {sneaker.story && (
+                        {product.short_description && (
                           <p className="text-xs text-gray-500 line-clamp-2 mb-2">
-                            {sneaker.story}
+                            {product.short_description}
                           </p>
                         )}
                       </div>

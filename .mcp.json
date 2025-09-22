@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "@supabase/mcp-server-supabase"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://mrrlohamkffxfiwspkki.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "sbp_ac5f0c5cf128eb0063e6f01be7f5a963f8a05f3d",
+        "SUPABASE_PROJECT_ID": "mrrlohamkffxfiwspkki",
+        "SUPABASE_ACCESS_TOKEN": "sbp_ac5f0c5cf128eb0063e6f01be7f5a963f8a05f3d"
+      }
+    }
+  }
+}

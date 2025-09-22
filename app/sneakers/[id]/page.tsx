@@ -1,63 +1,118 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingBag, Heart, Share2, Star, Shield, Truck, RefreshCw } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Heart, Share2, Star, Shield, Truck, RefreshCw, Package, AlertCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { getProduct, formatCurrency, type ProductData } from '@/lib/product-data'
 import { useParams } from 'next/navigation'
 import { useCartStore } from '@/lib/cart-store'
+import { toast } from 'sonner'
 
 export default function SneakerDetailPage() {
   const params = useParams()
   const { addItem } = useCartStore()
-  const [selectedSize, setSelectedSize] = useState<number | null>(null)
+  const [product, setProduct] = useState<ProductData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<any>(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const [addingToCart, setAddingToCart] = useState(false)
 
-  // Find the sneaker by ID from our real data
-  const sneakerData = iconicSneakers.find(s => s.id === params.id) || iconicSneakers[0]
+  // Load product data
+  useEffect(() => {
+    const loadProduct = async () => {
+      setLoading(true)
+      try {
+        const productData = await getProduct(params.id as string)
+        setProduct(productData)
+      } catch (error) {
+        console.error('Error loading product:', error)
+        toast.error('Product not found')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const sneaker = {
-    ...sneakerData,
-    sizes: [7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12],
-    availableSizes: [8, 9, 10, 11], // Some sizes might be sold out
-    sku: `LI-${sneakerData.brand.slice(0,2)}-${sneakerData.id}`,
-    features: [
-      `Authentic ${sneakerData.authenticity.verifiedBy} certification`,
-      `Only ${sneakerData.rarity.produced} pairs ever made`,
-      `Premium ${sneakerData.materials?.join(', ') || 'leather and suede'} construction`,
-      `Released in ${sneakerData.releaseYear}`,
-      `Current value trend: +${sneakerData.valueTrend.percentage}%`
-    ]
+    if (params.id) {
+      loadProduct()
+    }
+  }, [params.id])
+
+  // Update selected variant when size changes
+  useEffect(() => {
+    if (product && selectedSize) {
+      const variant = product.variants.find(v => v.size === selectedSize && v.is_active)
+      setSelectedVariant(variant)
+    }
+  }, [product, selectedSize])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-white mx-auto mb-4" />
+          <p className="text-white font-mono tracking-wider">LOADING PRODUCT...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert('Please select a size')
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-4 font-mono">PRODUCT NOT FOUND</h1>
+          <p className="text-gray-400 mb-6">This legendary piece doesn't exist in our vault</p>
+          <Link
+            href="/sneakers"
+            className="bg-white text-black px-6 py-3 font-mono tracking-wider hover:bg-gray-200 transition-colors"
+          >
+            BROWSE COLLECTION
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const handleAddToCart = async () => {
+    if (!selectedSize || !selectedVariant) {
+      toast.error('Please select a size')
       return
     }
+
+    if (selectedVariant.stock_quantity < quantity) {
+      toast.error(`Only ${selectedVariant.stock_quantity} items available in this size`)
+      return
+    }
+
+    setAddingToCart(true)
     try {
-      addItem({
-        id: sneaker.id.toString(),
-        name: sneaker.name,
-        price: sneaker.price,
-        size: selectedSize.toString(),
+      await addItem({
+        product_id: product.id,
+        variant_id: selectedVariant.id,
+        name: product.name,
+        brand: product.brand.name,
+        price: product.base_price,
+        size: selectedSize,
         quantity: quantity,
-        image: sneaker.images[0]
+        image: product.images[0]?.url || '',
+        sku: selectedVariant.sku,
+        max_quantity: selectedVariant.stock_quantity
       })
 
-      // Show success feedback (optional)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Successfully added to cart:', { sneaker: sneaker.name, size: selectedSize, quantity })
-      }
-    } catch (error) {
+      toast.success(`Added ${product.name} (Size ${selectedSize}) to cart`)
+    } catch (error: any) {
       console.error('Failed to add item to cart:', error)
-      // Could show error toast here
+      toast.error(error.message || 'Failed to add item to cart')
+    } finally {
+      setAddingToCart(false)
     }
   }
 
@@ -80,8 +135,8 @@ export default function SneakerDetailPage() {
               className="relative aspect-square bg-gradient-to-b from-gray-900 to-black overflow-hidden"
             >
               <Image
-                src={sneaker.images[selectedImage]}
-                alt={sneaker.name}
+                src={product.images[selectedImage]?.url || '/placeholder-sneaker.jpg'}
+                alt={product.name}
                 fill
                 className="object-cover"
               />
@@ -91,10 +146,17 @@ export default function SneakerDetailPage() {
               >
                 <Heart className={cn("w-5 h-5", isWishlisted && "fill-red-500 text-red-500")} />
               </button>
+
+              {/* Stock indicator */}
+              {!product.in_stock && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                  <span className="text-white text-2xl font-mono font-bold">SOLD OUT</span>
+                </div>
+              )}
             </motion.div>
 
             <div className="grid grid-cols-4 gap-2">
-              {sneaker.images.map((image, index) => (
+              {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -106,8 +168,8 @@ export default function SneakerDetailPage() {
                   )}
                 >
                   <Image
-                    src={image}
-                    alt={`${sneaker.name} ${index + 1}`}
+                    src={image.url}
+                    alt={image.alt_text || `${product.name} ${index + 1}`}
                     fill
                     className="object-cover"
                   />
@@ -123,33 +185,39 @@ export default function SneakerDetailPage() {
           >
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xs font-mono text-gray-500">{sneaker.brand}</span>
+                <span className="text-xs font-mono text-gray-500">{product.brand.name}</span>
                 <span className="text-xs font-mono text-gray-500">•</span>
-                <span className="text-xs font-mono text-gray-500">{sneaker.category}</span>
+                <span className="text-xs font-mono text-gray-500">{product.category.name}</span>
               </div>
               <h1 className="text-4xl lg:text-5xl font-bold tracking-tighter mb-2">
-                {sneaker.name}
+                {product.name}
               </h1>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className={cn(
                       "w-4 h-4",
-                      i < Math.ceil(sneaker.rarity.rating / 2)
+                      i < Math.ceil(product.rarity_score / 2)
                         ? "fill-white text-white"
                         : "text-gray-600"
                     )} />
                   ))}
                 </div>
-                <span className="text-sm text-gray-400">Rarity: {sneaker.rarity.rating}/10</span>
+                <span className="text-sm text-gray-400">Rarity: {product.rarity_score}/10</span>
+                {product.total_stock > 0 && (
+                  <div className="flex items-center gap-1 text-sm text-green-400">
+                    <Package className="w-4 h-4" />
+                    <span>{product.total_stock} in stock</span>
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
-                <p className="text-3xl font-bold">{formatCurrency(sneaker.price, currency)}</p>
-                {sneaker.resaleValue > sneaker.price && (
+                <p className="text-3xl font-bold">{formatCurrency(product.base_price, currency)}</p>
+                {product.resale_value && product.resale_value > product.base_price && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">Resale Value:</span>
                     <span className="text-lg font-semibold text-green-500">
-                      {formatCurrency(sneaker.resaleValue, currency)}
+                      {formatCurrency(product.resale_value, currency)}
                     </span>
                   </div>
                 )}
@@ -157,48 +225,66 @@ export default function SneakerDetailPage() {
             </div>
 
             <div>
-              <p className="text-gray-400 leading-relaxed">{sneaker.story}</p>
+              <p className="text-gray-400 leading-relaxed">{product.story}</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                {sneaker.category === 'grail' && (
+                {product.category_type === 'grail' && (
                   <span className="px-3 py-1 bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-xs font-mono font-bold">
                     GRAIL
                   </span>
                 )}
-                {sneaker.authenticity.certificate && (
+                {product.has_authenticity_certificate && (
                   <span className="px-3 py-1 bg-green-500/20 border border-green-500 text-green-500 text-xs font-mono flex items-center gap-1">
                     <Shield className="w-3 h-3" />
                     CERTIFIED
                   </span>
                 )}
                 <span className="px-3 py-1 bg-white/10 text-white text-xs font-mono uppercase">
-                  {sneaker.category}
+                  {product.category_type}
                 </span>
+                {product.is_limited_edition && (
+                  <span className="px-3 py-1 bg-purple-500/20 border border-purple-500 text-purple-500 text-xs font-mono">
+                    LIMITED EDITION
+                  </span>
+                )}
               </div>
             </div>
 
             <div>
               <h3 className="font-mono text-sm tracking-wider mb-4">SELECT SIZE</h3>
               <div className="grid grid-cols-5 gap-2">
-                {sneaker.sizes.map((size) => {
-                  const isAvailable = sneaker.availableSizes.includes(size)
-                  return (
-                    <button
-                      key={size}
-                      onClick={() => isAvailable && setSelectedSize(size)}
-                      disabled={!isAvailable}
-                      className={cn(
-                        "py-3 border font-mono text-sm transition-all",
-                        selectedSize === size
-                          ? "bg-white text-black border-white"
-                          : isAvailable
-                          ? "border-white/30 hover:border-white"
-                          : "border-white/10 text-gray-600 cursor-not-allowed"
-                      )}
-                    >
-                      {size}
-                    </button>
-                  )
-                })}
+                {product.variants
+                  .filter(variant => variant.is_active)
+                  .sort((a, b) => parseFloat(a.size) - parseFloat(b.size))
+                  .map((variant) => {
+                    const isAvailable = variant.stock_quantity > 0
+                    const isSelected = selectedSize === variant.size
+                    return (
+                      <div key={variant.id} className="relative">
+                        <button
+                          onClick={() => isAvailable && setSelectedSize(variant.size)}
+                          disabled={!isAvailable}
+                          className={cn(
+                            "w-full py-3 border font-mono text-sm transition-all relative",
+                            isSelected
+                              ? "bg-white text-black border-white"
+                              : isAvailable
+                              ? "border-white/30 hover:border-white"
+                              : "border-white/10 text-gray-600 cursor-not-allowed"
+                          )}
+                        >
+                          {variant.size}
+                          {isAvailable && variant.stock_quantity <= 3 && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                          )}
+                        </button>
+                        {isAvailable && (
+                          <div className="text-xs text-gray-500 text-center mt-1">
+                            {variant.stock_quantity} left
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
               </div>
               <Link
                 href="/size-guide"
@@ -213,18 +299,25 @@ export default function SneakerDetailPage() {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 border border-white/30 hover:bg-white hover:text-black transition-colors"
+                  disabled={quantity <= 1}
+                  className="w-10 h-10 border border-white/30 hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   -
                 </button>
                 <span className="w-12 text-center font-mono">{quantity}</span>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 border border-white/30 hover:bg-white hover:text-black transition-colors"
+                  disabled={!selectedVariant || quantity >= selectedVariant.stock_quantity}
+                  className="w-10 h-10 border border-white/30 hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   +
                 </button>
               </div>
+              {selectedVariant && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Max quantity: {selectedVariant.stock_quantity}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -232,10 +325,25 @@ export default function SneakerDetailPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddToCart}
-                className="w-full py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
+                disabled={!product.in_stock || !selectedSize || addingToCart}
+                className="w-full py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                <ShoppingBag className="w-5 h-5" />
-                <span>ADD TO CART</span>
+                {addingToCart ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>ADDING...</span>
+                  </>
+                ) : !product.in_stock ? (
+                  <>
+                    <AlertCircle className="w-5 h-5" />
+                    <span>SOLD OUT</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="w-5 h-5" />
+                    <span>ADD TO CART</span>
+                  </>
+                )}
               </motion.button>
 
               <button className="w-full py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white hover:text-black transition-colors flex items-center justify-center space-x-2">
@@ -273,40 +381,78 @@ export default function SneakerDetailPage() {
               <dl className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-400">SKU</dt>
-                  <dd className="font-mono">{sneaker.sku}</dd>
+                  <dd className="font-mono">{product.sku}</dd>
                 </div>
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-400">Color</dt>
-                  <dd className="font-mono">{sneaker.color}</dd>
+                  <dd className="font-mono">{product.colorway}</dd>
                 </div>
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-400">Materials</dt>
-                  <dd className="font-mono">{sneaker.materials?.join(', ') || 'Premium Leather'}</dd>
+                  <dd className="font-mono">{product.material}</dd>
                 </div>
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-400">Release Year</dt>
-                  <dd className="font-mono">{sneaker.releaseYear}</dd>
+                  <dd className="font-mono">{product.release_year}</dd>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <dt className="text-gray-400">Edition</dt>
-                  <dd className="font-mono">{sneaker.edition}</dd>
-                </div>
+                {product.edition_name && (
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-400">Edition</dt>
+                    <dd className="font-mono">{product.edition_name}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <dt className="text-gray-400">Rarity Rating</dt>
-                  <dd className="font-mono">{sneaker.rarity.rating}/10</dd>
+                  <dd className="font-mono">{product.rarity_score}/10</dd>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <dt className="text-gray-400">Total Stock</dt>
+                  <dd className="font-mono">{product.total_stock} pairs</dd>
+                </div>
+                {product.total_produced && (
+                  <div className="flex justify-between text-sm">
+                    <dt className="text-gray-400">Total Produced</dt>
+                    <dd className="font-mono">{product.total_produced.toLocaleString()} pairs</dd>
+                  </div>
+                )}
               </dl>
             </div>
 
             <div className="pt-6 border-t border-white/10">
               <h3 className="font-mono text-sm tracking-wider mb-4">KEY FEATURES</h3>
               <ul className="space-y-2">
-                {sneaker.features.map((feature, index) => (
-                  <li key={index} className="flex items-start space-x-2 text-sm">
+                {product.has_authenticity_certificate && (
+                  <li className="flex items-start space-x-2 text-sm">
                     <span className="text-gray-400">•</span>
-                    <span>{feature}</span>
+                    <span>Authentic {product.verified_by || 'Li-Lo'} certification</span>
                   </li>
-                ))}
+                )}
+                {product.total_produced && (
+                  <li className="flex items-start space-x-2 text-sm">
+                    <span className="text-gray-400">•</span>
+                    <span>Only {product.total_produced.toLocaleString()} pairs ever made</span>
+                  </li>
+                )}
+                <li className="flex items-start space-x-2 text-sm">
+                  <span className="text-gray-400">•</span>
+                  <span>Premium {product.material} construction</span>
+                </li>
+                <li className="flex items-start space-x-2 text-sm">
+                  <span className="text-gray-400">•</span>
+                  <span>Released in {product.release_year}</span>
+                </li>
+                {product.value_trend_percentage && product.value_trend_percentage > 0 && (
+                  <li className="flex items-start space-x-2 text-sm">
+                    <span className="text-gray-400">•</span>
+                    <span>Current value trend: +{product.value_trend_percentage}%</span>
+                  </li>
+                )}
+                {product.is_limited_edition && (
+                  <li className="flex items-start space-x-2 text-sm">
+                    <span className="text-gray-400">•</span>
+                    <span>Limited edition release</span>
+                  </li>
+                )}
               </ul>
             </div>
           </motion.div>
