@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
             status: 'confirmed',
             payment_status: 'paid',
             payment_intent_id: session.payment_intent as string,
-            shipping_address: session.shipping_details,
+            shipping_address: session.shipping_cost || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', orderId)

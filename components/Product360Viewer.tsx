@@ -26,7 +26,7 @@ export default function Product360Viewer({ images, productName, className = '' }
   useEffect(() => {
     if (images.length > 1) {
       images.forEach((src, index) => {
-        const img = new Image()
+        const img = new window.Image()
         img.src = src
         imageRefs.current[index] = img
       })

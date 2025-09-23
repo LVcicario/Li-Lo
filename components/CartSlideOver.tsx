@@ -189,7 +189,7 @@ export default function CartSlideOver() {
                               <span className="w-8 text-center font-mono">{item.quantity}</span>
                               <button
                                 onClick={() => handleUpdateQuantity(item.id, item.size, item.quantity + 1)}
-                                disabled={isItemLoading || (item.max_quantity && item.quantity >= item.max_quantity)}
+                                disabled={isItemLoading || Boolean(item.max_quantity && item.quantity >= item.max_quantity)}
                                 className="p-1 hover:bg-gray-700 rounded disabled:opacity-50 disabled:hover:bg-transparent"
                               >
                                 <Plus className="w-4 h-4" />

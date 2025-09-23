@@ -372,7 +372,7 @@ export async function GET(request: NextRequest) {
         .update({
           status: 'confirmed',
           payment_status: 'paid',
-          shipping_address: session.shipping_details,
+          shipping_address: session.shipping_cost || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId)
@@ -417,7 +417,7 @@ export async function GET(request: NextRequest) {
         id: session.id,
         payment_status: session.payment_status,
         customer_details: session.customer_details,
-        shipping_details: session.shipping_details,
+        shipping_cost: session.shipping_cost,
         amount_total: session.amount_total,
         amount_subtotal: session.amount_subtotal,
         currency: session.currency,

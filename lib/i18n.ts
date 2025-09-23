@@ -91,7 +91,7 @@ export const useLanguageStore = create<LanguageState>()(
           });
         }
 
-        return result;
+        return typeof result === 'string' ? result : key;
       },
     }),
     {

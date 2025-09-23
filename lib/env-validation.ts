@@ -91,7 +91,7 @@ export const CONFIG = {
     SECRET_KEY: process.env.STRIPE_SECRET_KEY!,
     PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
     WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET!,
-    API_VERSION: '2024-12-18.acacia' as const
+    API_VERSION: '2025-08-27.basil' as const
   },
   SUPABASE: {
     URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,

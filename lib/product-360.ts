@@ -92,7 +92,7 @@ export async function get360Images(productId: string): Promise<Product360Image[]
       return []
     }
 
-    return images?.map(img => ({
+    return images?.map((img: any) => ({
       id: img.id,
       url: img.url,
       viewAngle: img.view_angle || 0,

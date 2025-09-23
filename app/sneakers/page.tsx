@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ import { Filter, X, Grid, List, TrendingUp, Award, Lock, Shield, Package } from 
 import { cn } from '@/lib/utils'
 import { getProducts, getBrands, getCategories, formatCurrency, type ProductData, type ProductFilters, type ProductSort } from '@/lib/product-data'
 
-export default function SneakersPage() {
+function SneakersContent() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get('q') || ''
 
@@ -521,5 +521,20 @@ export default function SneakersPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SneakersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <Package className="w-12 h-12 animate-pulse mx-auto mb-4 text-white" />
+          <p className="text-white">Loading sneakers...</p>
+        </div>
+      </div>
+    }>
+      <SneakersContent />
+    </Suspense>
   )
 }

@@ -107,12 +107,15 @@ export default function WishlistPage() {
                     <button
                       onClick={() => {
                         addItem({
-                          id: item.id,
+                          product_id: item.id,
+                          variant_id: item.id + '-10',
                           name: item.name,
+                          brand: item.brand,
                           price: item.price,
                           size: '10',
                           quantity: 1,
                           image: item.image,
+                          sku: item.id + '-10',
                         });
                       }}
                       className="w-full flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800"
