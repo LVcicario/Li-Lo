@@ -14,7 +14,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { getTotalItems, toggleCart } = useCartStore()
-  const { user, isAdmin, isSeller } = useAuthStore()
+  const { user, isAdmin, userRole } = useAuthStore()
   const { currentLanguage, setLanguage, t, initializeLanguage } = useLanguageStore()
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [showLangMenu, setShowLangMenu] = useState(false)
@@ -192,7 +192,7 @@ export function Navbar() {
                   <Shield className="w-5 h-5 text-red-400 group-hover:text-red-300" />
                 </Link>
               )}
-              {isSeller && !isAdmin && (
+              {userRole === 'admin' && !isAdmin && (
                 <Link
                   href="/seller"
                   className="p-2 hover:bg-white/10 rounded-full transition-colors group"
