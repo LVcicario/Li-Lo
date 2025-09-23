@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Sparkles, TrendingUp, Clock, Fire } from 'lucide-react'
+import { Sparkles, TrendingUp, Clock, Flame } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 
 export default function NewArrivalsPage() {
@@ -152,7 +152,7 @@ export default function NewArrivalsPage() {
             >
               {filter}
               {filter === 'HOT' && (
-                <Fire className="inline-block w-4 h-4 ml-2 text-orange-500" />
+                <Flame className="inline-block w-4 h-4 ml-2 text-orange-500" />
               )}
             </motion.button>
           ))}
