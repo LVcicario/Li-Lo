@@ -45,8 +45,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The complete set of six Air Jordans worn by MJ during NBA championship-clinching games (1991-1998)',
     story: 'Each shoe was worn during the final game of each championship series. The most expensive sneaker sale in history.',
     images: [
-      'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1611510338559-2f463335092c?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1603787081207-362bcef7c144?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1612902456551-333ac5afa26e?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [13], // MJ's size
     color: 'Various',
@@ -82,8 +83,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The actual shoes worn by Michael Jordan during Game 2 of the 1998 NBA Finals',
     story: "Jordan's final championship game with the Bulls. He scored 37 points wearing these exact shoes in his 'Last Dance'.",
     images: [
-      'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1612902376491-7a8a99b424e8?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1603787081151-cbebeef20092?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [13],
     color: 'Black/True Red',
@@ -119,8 +121,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Kanye West\'s personal prototype worn at the 2008 Grammy Awards',
     story: 'The shoe that started the Yeezy empire. Kanye wore these during his Grammy performance, making sneaker history.',
     images: [
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1606890658317-7d14490b76fd?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [12],
     color: 'Black/Pink',
@@ -158,8 +161,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The pinnacle of luxury meets street. Hand-crafted in Italy with Dior\'s signature materials.',
     story: 'Limited to 8,500 pairs worldwide, each pair is individually numbered and comes with exclusive Dior accessories.',
     images: [
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1612902456551-333ac5afa26e?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1584535881925-a9fe19c39124?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1612902377756-0e8cd69e209a?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [7, 8, 9, 10, 11, 12],
     color: 'Wolf Grey/Sail/Photon Dust',
@@ -195,8 +199,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Triple collaboration between Jordan, Travis Scott, and Hiroshi Fujiwara\'s Fragment Design',
     story: 'The meeting of streetwear titans. Combines Travis\'s reverse swoosh with Fragment\'s minimalist aesthetic.',
     images: [
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1612902456914-277b0fac0615?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11, 12],
     color: 'Military Blue/Sail/Black',
@@ -232,8 +237,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Virgil Abloh\'s deconstructed take on the most iconic Jordan silhouette',
     story: 'Part of "The Ten" collection, this shoe redefined sneaker collaborations with its deconstructed aesthetic.',
     images: [
-      'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1603787081207-362bcef7c144?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1612902377491-7a8a99b424e8?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11],
     color: 'White/Black-Varsity Red',
@@ -271,8 +277,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The low-top version of Travis\'s revolutionary reverse swoosh design',
     story: 'Travis brought his Houston roots and Cactus Jack aesthetic to this earth-toned masterpiece.',
     images: [
-      'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1600185365778-7875a359b924?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [7, 8, 9, 10, 11, 12, 13],
     color: 'Dark Mocha/Black/Sail',
@@ -308,8 +315,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Union LA\'s fresh take on the classic Jordan 4 silhouette',
     story: 'Chris Gibbs brought LA street culture to this collaboration with unique colorways and details.',
     images: [
-      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1584535881925-c3b87dc8c0ec?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11, 12],
     color: 'Guava Ice/Light Fusion Red',
@@ -345,8 +353,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Vote Forward winning design combining Air Max 97 and Air Max 1',
     story: 'Sean\'s vintage-inspired corduroy design won Nike\'s Vote Forward competition and became an instant classic.',
     images: [
-      'https://images.unsplash.com/photo-1539185441755-769473a23570?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1605408499391-6368c628ef42?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11],
     color: 'Multi-Color/Corduroy',
@@ -384,8 +393,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Given exclusively to friends and family of Eminem. Only 50 pairs exist.',
     story: 'Created to celebrate Eminem\'s Encore album. One of the rarest Jordan 4s ever made.',
     images: [
-      'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1551116198-01e4e648b1f6?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1581067721837-e4809b29692d?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1606890542241-2c9e5e8af9d5?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [10, 11, 12],
     color: 'Blue/Black/Grey',
@@ -421,8 +431,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Inspired by the jersey MJ wore when he shattered a backboard in Italy',
     story: 'During a 1985 exhibition game in Italy, MJ shattered the backboard with a dunk while wearing orange and black.',
     images: [
-      'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1584464491495-c565ca127102?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1605408499563-c82b22c84a0f?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11, 12],
     color: 'Orange/Black/White',
@@ -458,8 +469,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The non-OG colorway that became a legend',
     story: 'Originally released in 2001, this colorway has become one of the most sought-after Jordan 11s.',
     images: [
-      'https://images.unsplash.com/photo-1581068506652-61cd93f30c3f?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1575537302964-96cd47c06b1b?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1606890658317-7d14490b76fd?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [7, 8, 9, 10, 11, 12, 13],
     color: 'Medium Grey/White/Cool Grey',
@@ -495,8 +507,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The first Adidas Yeezy that started a new era',
     story: 'Kanye\'s first Adidas collaboration after leaving Nike. The shoe that launched the Yeezy empire.',
     images: [
-      'https://images.unsplash.com/photo-1554735490-5974588cbc4f?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1520256862855-398228c41684?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1584464491495-985cf47dbc14?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1584464491423-21d5caa13131?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11, 12],
     color: 'Light Brown/Carbon White',
@@ -532,8 +545,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Supreme\'s croc-skin leather Dunk with gold stars',
     story: 'Part of Supreme\'s 2021 collaboration featuring premium materials and the iconic gold stars.',
     images: [
-      'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1595341888016-a392ef81b7de?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1562183241-b937e95585b6?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [8, 9, 10, 11],
     color: 'Mean Green/Black/White',
@@ -569,8 +583,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'Ice cream-inspired Dunk with cow print and melting swoosh',
     story: 'A sweet collaboration between Nike SB and Ben & Jerry\'s featuring playful ice cream-themed details.',
     images: [
-      'https://images.unsplash.com/photo-1603787081207-362bcef7c144?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1612724189298-89d36b10b26d?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1603787081207-362bcef7c144?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1612724189298-89d36b10b26d?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1605733160314-4fc7ddfbd1e5?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [7, 8, 9, 10, 11, 12],
     color: 'Lagoon Pulse/Black/White',
@@ -606,8 +621,9 @@ export const iconicSneakers: SneakerData[] = [
     description: 'The recalled Nightmare on Elm Street Dunk',
     story: 'Recalled due to copyright issues, most pairs were destroyed. Only a few survived, making it ultra-rare.',
     images: [
-      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=800&h=800&fit=crop'
+      'https://images.unsplash.com/photo-1579338559194-a162d19bf842?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1512374382149-233c42b6a83b?w=1200&h=1200&fit=crop&q=100',
+      'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=1200&h=1200&fit=crop&q=100'
     ],
     sizes: [9, 10, 11],
     color: 'Red/Green Stripes',

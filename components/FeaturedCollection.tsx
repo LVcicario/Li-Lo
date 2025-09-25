@@ -9,17 +9,16 @@ import { useLanguageStore } from '@/lib/i18n'
 import { useCurrencyStore } from '@/lib/currency-store'
 
 export function FeaturedCollection() {
-  const { t } = useLanguageStore()
+  // Translation disabled - using hardcoded English text
+  // const { t } = useLanguageStore()
   const { format: formatPrice } = useCurrencyStore()
 
-  // Fetch featured products from database
-  const { products: dbProducts, loading } = useProducts({
-    limit: 4,
-    sort: 'featured'
-  })
+  // Import the real sneaker data
+  const { iconicSneakers } = require('@/lib/sneaker-data')
 
-  // Convert database products to legacy format for compatibility
-  const featuredSneakers = dbProducts.map(formatDatabaseProduct)
+  // Use first 4 iconic sneakers from our updated database
+  const featuredSneakers = iconicSneakers.slice(0, 4)
+  const loading = false
 
   if (loading) {
     return (
@@ -27,10 +26,10 @@ export function FeaturedCollection() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-              {t('pages.home.featuredDrops')}
+              FEATURED DROPS
             </h2>
             <p className="font-mono text-sm text-gray-400 tracking-wider">
-              {t('common.loading')}
+              Loading...
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -53,15 +52,15 @@ export function FeaturedCollection() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            {t('pages.home.featuredDrops')}
+            FEATURED DROPS
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            {t('pages.home.handpickedExcellence')}
+            HANDPICKED EXCELLENCE
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredSneakers.map((sneaker, index) => (
+          {featuredSneakers.map((sneaker: any, index: number) => (
             <motion.div
               key={sneaker.id}
               initial={{ opacity: 0, y: 50 }}
@@ -74,7 +73,7 @@ export function FeaturedCollection() {
                 <div className="relative overflow-hidden bg-gradient-to-b from-gray-900 to-black">
                   {sneaker.featured && (
                     <span className="absolute top-4 left-4 z-10 px-3 py-1 bg-accent text-black text-xs font-mono tracking-wider">
-                      {t('product.featured')}
+                      FEATURED
                     </span>
                   )}
                   {sneaker.category === 'grail' && (
@@ -83,15 +82,17 @@ export function FeaturedCollection() {
                       transition={{ duration: 2, repeat: Infinity }}
                       className="absolute top-4 right-4 z-10 px-3 py-1 bg-gradient-to-r from-yellow-500 to-amber-500 text-black text-xs font-mono font-bold"
                     >
-                      {t('product.grail')}
+                      GRAIL
                     </motion.span>
                   )}
-                  <div className="aspect-square relative">
+                  <div className="aspect-square relative bg-gradient-to-br from-gray-100 to-white">
                     <Image
                       src={sneaker.images[0]}
                       alt={sneaker.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+                      quality={95}
+                      priority={index < 2}
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -129,7 +130,7 @@ export function FeaturedCollection() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full mt-2 py-3 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors flex items-center justify-center group"
               >
-                {t('product.addToCart')}
+                ADD TO CART
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </motion.div>
@@ -146,7 +147,7 @@ export function FeaturedCollection() {
             href="/collections"
             className="inline-flex items-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white hover:text-black transition-all duration-300"
           >
-            {t('filters.viewAll')} {t('pages.collections.title')}
+            VIEW ALL COLLECTIONS
             <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </motion.div>

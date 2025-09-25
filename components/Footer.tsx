@@ -9,23 +9,23 @@ export function Footer() {
   const { t } = useLanguageStore()
 
   const footerLinks = {
-    [t('footer.shop')]: [
-      { href: '/sneakers', label: t('nav.allSneakers') },
-      { href: '/exclusive', label: t('nav.exclusive') },
-      { href: '/limited-edition', label: t('nav.limitedEdition') },
+    'Shop': [
+      { href: '/sneakers', label: 'All Sneakers' },
+      { href: '/exclusive', label: 'Exclusive' },
+      { href: '/limited-edition', label: 'Limited Edition' },
       { href: '/new-arrivals', label: 'New Arrivals' },
     ],
-    [t('footer.support')]: [
-      { href: '/size-guide', label: t('footer.sizeGuide') },
-      { href: '/shipping', label: t('footer.shipping') },
-      { href: '/returns', label: t('footer.returns') },
-      { href: '/contact', label: t('footer.contact') },
+    'Support': [
+      { href: '/size-guide', label: 'Size Guide' },
+      { href: '/shipping', label: 'Shipping' },
+      { href: '/returns', label: 'Returns' },
+      { href: '/contact', label: 'Contact' },
     ],
-    [t('footer.company')]: [
-      { href: '/about', label: t('footer.about') },
-      { href: '/authenticity', label: t('footer.authenticity') },
-      { href: '/legal/terms', label: t('footer.termsOfService') },
-      { href: '/legal/privacy', label: t('footer.privacyPolicy') },
+    'Company': [
+      { href: '/about', label: 'About' },
+      { href: '/authenticity', label: 'Authenticity' },
+      { href: '/legal/terms', label: 'Terms of Service' },
+      { href: '/legal/privacy', label: 'Privacy Policy' },
     ],
   }
 
@@ -48,8 +48,8 @@ export function Footer() {
             >
               <h3 className="text-3xl font-bold tracking-tighter mb-4">LI-LO</h3>
               <p className="font-mono text-sm text-gray-400 mb-6">
-                {t('pages.home.ultraRareCollection').replace(' • ', ' ')}<br />
-                {t('hero.forTrueConnoisseurs')}
+                ULTRA RARE COLLECTION<br />
+                FOR TRUE CONNOISSEURS
               </p>
               <div className="flex space-x-4">
                 {socialLinks.map((social) => {

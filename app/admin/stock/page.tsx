@@ -8,7 +8,8 @@ import { Package, Search, Filter, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function StockManagementPage() {
-  const { user, isAdmin } = useAuthStore()
+  const { user, userRole } = useAuthStore()
+  const isSeller = userRole === 'seller' || userRole === 'ceo'
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
 
@@ -20,12 +21,12 @@ export default function StockManagementPage() {
 
   // Redirect if not admin
   useEffect(() => {
-    if (!isAdmin && !loading) {
+    if (!isSeller && !loading) {
       window.location.href = '/auth/login'
     }
-  }, [isAdmin, loading])
+  }, [isSeller, loading])
 
-  if (!isAdmin) {
+  if (!isSeller) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">

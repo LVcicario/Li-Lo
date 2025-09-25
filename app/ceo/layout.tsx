@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/auth-store'
-import { checkRouteAccess } from '@/lib/role-routing'
 import {
   LayoutDashboard,
   Package,
@@ -39,8 +38,10 @@ export default function CEOLayout({
       if (!loading) {
         if (!user) {
           router.push('/auth/login')
-        } else if (userRole !== 'super_admin') {
-          checkRouteAccess('/ceo', userRole)
+        } else if (userRole !== 'ceo') {
+          // Redirect non-CEO users to their appropriate dashboard
+          const dashboardUrl = userRole === 'seller' ? '/seller/dashboard' : '/account/dashboard'
+          router.push(dashboardUrl)
         }
       }
     })
@@ -59,7 +60,7 @@ export default function CEOLayout({
     )
   }
 
-  if (!user || userRole !== 'super_admin') {
+  if (!user || userRole !== 'ceo') {
     return null
   }
 

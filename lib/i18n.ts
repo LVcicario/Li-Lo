@@ -103,12 +103,6 @@ export const useLanguageStore = create<LanguageState>()(
       },
 
       loadTranslations: async (lang: string) => {
-        // French is our base language, no translation needed
-        if (lang === 'fr') {
-          set({ currentLanguage: 'fr', translations: baseTranslations, isLoading: false });
-          return;
-        }
-
         // Check cache first
         const cacheKey = `translations_${lang}`;
         const cached = translationCacheMap.get(cacheKey);
@@ -121,22 +115,14 @@ export const useLanguageStore = create<LanguageState>()(
         set({ isLoading: true });
 
         try {
-          // Use DeepL API to translate
-          const response = await fetch('/api/translate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              texts: baseTranslations,
-              targetLang: lang.toUpperCase(),
-              sourceLang: 'FR'
-            })
-          });
+          // Load translations from static JSON files
+          const response = await fetch(`/locales/${lang}.json`);
 
           if (!response.ok) {
-            throw new Error('Translation API failed');
+            throw new Error(`Failed to load ${lang} translations`);
           }
 
-          const { translations } = await response.json();
+          const translations = await response.json();
 
           // Cache the translations
           translationCacheMap.set(cacheKey, {
@@ -148,19 +134,8 @@ export const useLanguageStore = create<LanguageState>()(
         } catch (error) {
           console.error('Failed to load translations:', error);
 
-          // Try loading static fallback
-          try {
-            const fallbackResponse = await fetch(`/locales/${lang}/common.json`);
-            if (fallbackResponse.ok) {
-              const fallbackTranslations = await fallbackResponse.json();
-              set({ currentLanguage: lang, translations: fallbackTranslations, isLoading: false });
-            } else {
-              // Fall back to base translations if all else fails
-              set({ translations: baseTranslations, isLoading: false });
-            }
-          } catch {
-            set({ translations: baseTranslations, isLoading: false });
-          }
+          // Fall back to base translations if all else fails
+          set({ translations: baseTranslations, isLoading: false });
         }
       },
 

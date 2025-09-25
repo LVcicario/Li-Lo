@@ -21,11 +21,11 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      const { user } = useAuthStore.getState();
+      const dashboardUrl = await signIn(email, password);
+      const { userRole } = useAuthStore.getState();
 
-      if (user?.user_metadata?.role !== 'admin') {
-        setError('Access denied. Admin privileges required.');
+      if (userRole !== 'seller' && userRole !== 'ceo') {
+        setError('Access denied. Admin/Seller privileges required.');
         await useAuthStore.getState().signOut();
       } else {
         router.push('/admin/dashboard');

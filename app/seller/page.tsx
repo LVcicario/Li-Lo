@@ -9,7 +9,8 @@ import { useLanguageStore } from '@/lib/i18n';
 
 export default function SellerDashboard() {
   const router = useRouter();
-  const { user, userRole, isAdmin, loading, checkUser } = useAuthStore();
+  const { user, userRole, loading, checkUser } = useAuthStore();
+  const isSeller = userRole === 'seller' || userRole === 'ceo';
   const { t } = useLanguageStore();
 
   useEffect(() => {
@@ -17,10 +18,10 @@ export default function SellerDashboard() {
   }, [checkUser]);
 
   useEffect(() => {
-    if (!loading && (!user || (userRole !== 'admin' && !isAdmin))) {
+    if (!loading && (!user || !isSeller)) {
       router.push('/auth/login');
     }
-  }, [user, userRole, isAdmin, loading, router]);
+  }, [user, isSeller, loading, router]);
 
   if (loading) {
     return (
@@ -34,7 +35,7 @@ export default function SellerDashboard() {
     );
   }
 
-  if (!user || (userRole !== 'admin' && !isAdmin)) {
+  if (!user || !isSeller) {
     return null;
   }
 

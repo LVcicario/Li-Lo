@@ -310,6 +310,30 @@
       "namedRegex": "^/seller(?:/)?$"
     },
     {
+      "page": "/seller/dashboard",
+      "regex": "^/seller/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/seller/dashboard(?:/)?$"
+    },
+    {
+      "page": "/seller/history",
+      "regex": "^/seller/history(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/seller/history(?:/)?$"
+    },
+    {
+      "page": "/seller/inventory",
+      "regex": "^/seller/inventory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/seller/inventory(?:/)?$"
+    },
+    {
+      "page": "/seller/reorder",
+      "regex": "^/seller/reorder(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/seller/reorder(?:/)?$"
+    },
+    {
       "page": "/shipping",
       "regex": "^/shipping(?:/)?$",
       "routeKeys": {},

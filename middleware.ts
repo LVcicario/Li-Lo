@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { ensureEnvironment } from '@/lib/env-validation'
+import { authSecurityMiddleware } from '@/middleware/auth-security'
 
 // Validate environment on startup
 try {
@@ -10,6 +11,12 @@ try {
 }
 
 export async function middleware(request: NextRequest) {
+  // Apply auth security middleware for role-based access
+  const authResponse = await authSecurityMiddleware(request)
+  if (authResponse.status === 307 || authResponse.status === 302) {
+    return authResponse
+  }
+
   // Get the response from Supabase auth middleware
   const response = await updateSession(request)
 

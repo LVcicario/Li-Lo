@@ -12,25 +12,25 @@ export function Hero() {
 
   const slides = [
     {
-      title: t('hero.ultraRare'),
-      subtitle: t('hero.collection2024'),
-      description: t('hero.mostExclusiveSneakers'),
-      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1920&h=1080&fit=crop",
-      cta: t('hero.exploreRare')
+      title: "ULTRA RARE",
+      subtitle: "COLLECTION 2025",
+      description: "THE MOST EXCLUSIVE SNEAKERS IN EXISTENCE",
+      image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1920&h=1080&fit=crop&q=100",
+      cta: "EXPLORE RARE"
     },
     {
-      title: t('hero.premiumLegacy'),
-      subtitle: t('hero.limitedEdition'),
-      description: t('hero.whereArtMeetsFootwear'),
-      image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=1920&h=1080&fit=crop",
-      cta: t('hero.shopPremium')
+      title: "PREMIUM LEGACY",
+      subtitle: "LIMITED EDITION",
+      description: "WHERE ART MEETS FOOTWEAR",
+      image: "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1920&h=1080&fit=crop&q=100",
+      cta: "SHOP PREMIUM"
     },
     {
-      title: t('hero.collectorsVault'),
-      subtitle: t('hero.exclusiveAccess'),
-      description: t('hero.forTrueConnoisseurs'),
-      image: "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=1920&h=1080&fit=crop",
-      cta: t('hero.getAccess')
+      title: "COLLECTOR'S VAULT",
+      subtitle: "EXCLUSIVE ACCESS",
+      description: "FOR TRUE CONNOISSEURS",
+      image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=1920&h=1080&fit=crop&q=100",
+      cta: "GET ACCESS"
     }
   ]
 
@@ -123,7 +123,7 @@ export function Hero() {
                 href="/about"
                 className="inline-flex items-center justify-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white/10 transition-all duration-300"
               >
-                {t('hero.learnMore')}
+                LEARN MORE
               </Link>
             </motion.div>
           </motion.div>

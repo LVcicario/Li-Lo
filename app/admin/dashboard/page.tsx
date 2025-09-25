@@ -25,13 +25,14 @@ import { useAuthStore } from '@/lib/auth-store';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { user, isAdmin, signOut, checkUser } = useAuthStore();
+  const { user, userRole, signOut, checkUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const isSeller = userRole === 'seller' || userRole === 'ceo';
 
   useEffect(() => {
     checkUser().then(() => {
-      if (!user || !isAdmin) {
+      if (!user || !isSeller) {
         router.push('/admin/login');
       }
       setLoading(false);

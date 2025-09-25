@@ -11,23 +11,23 @@ export function CategoryShowcase() {
 
   const categories = [
     {
-      name: t('nav.exclusive'),
-      description: t('pages.home.beyondLimits'),
-      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&h=800&fit=crop",
+      name: "EXCLUSIVE",
+      description: "BEYOND LIMITS",
+      image: "https://images.unsplash.com/photo-1612902456551-333ac5afa26e?w=1200&h=1200&fit=crop&q=100",
       href: "/exclusive",
       count: "6 GRAILS"
     },
     {
-      name: t('nav.limitedEdition'),
-      description: t('pages.home.handpickedExcellence'),
-      image: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=1200&h=800&fit=crop",
+      name: "LIMITED EDITION",
+      description: "HANDPICKED EXCELLENCE",
+      image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=1200&h=1200&fit=crop&q=100",
       href: "/limited-edition",
       count: "9 ITEMS"
     },
     {
-      name: t('pages.home.iconicCollection'),
-      description: t('pages.home.legendaryItems'),
-      image: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=1200&h=800&fit=crop",
+      name: "ICONIC COLLECTION",
+      description: "LEGENDARY ITEMS",
+      image: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=1200&h=1200&fit=crop&q=100",
       href: "/sneakers",
       count: "16 LEGENDS"
     }
@@ -43,10 +43,10 @@ export function CategoryShowcase() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            {t('nav.collections').toUpperCase()}
+            COLLECTIONS
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            {t('hero.subtitle').toUpperCase()}
+            CURATED FOR THE ELITE
           </p>
         </motion.div>
 
@@ -66,6 +66,9 @@ export function CategoryShowcase() {
                     alt={category.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    quality={95}
+                    priority={index === 0}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
@@ -74,7 +77,7 @@ export function CategoryShowcase() {
                     <h3 className="text-3xl font-bold tracking-tighter mb-2">{category.name}</h3>
                     <p className="text-sm text-gray-400 mb-4">{category.description}</p>
                     <div className="flex items-center space-x-2 text-sm font-mono tracking-wider group-hover:text-accent transition-colors">
-                      <span>{t('product.explore')}</span>
+                      <span>EXPLORE</span>
                       <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                     </div>
                   </div>

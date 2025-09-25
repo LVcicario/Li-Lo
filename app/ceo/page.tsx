@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { useAuthStore } from '@/lib/auth-store'
 import { createClient } from '@/lib/supabase/client'
+import { sneakerApi } from '@/lib/sneaker-api'
+import { useMockData } from '@/lib/hooks/useMockData'
+import { DataToggle } from '@/components/dashboard/DataToggle'
+import { RevenueChart, MetricChart } from '@/components/charts/RevenueChart'
 import {
   DollarSign,
   TrendingUp,
@@ -12,26 +16,57 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Eye,
-  Calendar
+  Calendar,
+  Activity,
+  CreditCard,
+  Download,
+  BarChart3,
+  Globe,
+  Target,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 interface CEODashboardStats {
   totalRevenue: number
   monthlyRevenue: number
+  quarterlyRevenue: number
+  yearlyRevenue: number
   totalOrders: number
   monthlyOrders: number
   totalCustomers: number
   newCustomers: number
+  activeCustomers: number
   totalProducts: number
   lowStockProducts: number
   averageOrderValue: number
   conversionRate: number
+  cartAbandonmentRate: number
+  customerRetentionRate: number
   topSellingProducts: TopProduct[]
   recentOrders: RecentOrder[]
   revenueGrowth: number
   orderGrowth: number
   customerGrowth: number
+  profitMargin: number
+  grossMargin: number
+  sellerPerformance: SellerMetric[]
+  regionalSales: RegionalSales[]
 }
 
 interface TopProduct {
@@ -40,6 +75,7 @@ interface TopProduct {
   brand: string
   totalSold: number
   revenue: number
+  profit: number
   image_url?: string
 }
 
@@ -50,502 +86,602 @@ interface RecentOrder {
   total_amount: number
   status: string
   created_at: string
+  items_count: number
+}
+
+interface SellerMetric {
+  id: string
+  name: string
+  totalSales: number
+  revenue: number
+  products: number
+  performance: 'excellent' | 'good' | 'average' | 'poor'
+}
+
+interface RegionalSales {
+  region: string
+  sales: number
+  growth: number
+  orders: number
 }
 
 export default function CEODashboard() {
-  const { user } = useAuthStore()
+  const router = useRouter()
+  const { user, isCEO, checkUser } = useAuthStore()
+  const { isUsingMockData, getCEOMetrics, getRevenueTimeSeries, getRecentOrders } = useMockData()
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('month')
+  const [revenueData, setRevenueData] = useState<any[]>([])
   const [stats, setStats] = useState<CEODashboardStats>({
     totalRevenue: 0,
     monthlyRevenue: 0,
+    quarterlyRevenue: 0,
+    yearlyRevenue: 0,
     totalOrders: 0,
     monthlyOrders: 0,
     totalCustomers: 0,
     newCustomers: 0,
+    activeCustomers: 0,
     totalProducts: 0,
     lowStockProducts: 0,
     averageOrderValue: 0,
     conversionRate: 0,
+    cartAbandonmentRate: 0,
+    customerRetentionRate: 0,
     topSellingProducts: [],
     recentOrders: [],
     revenueGrowth: 0,
     orderGrowth: 0,
-    customerGrowth: 0
+    customerGrowth: 0,
+    profitMargin: 0,
+    grossMargin: 0,
+    sellerPerformance: [],
+    regionalSales: []
   })
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user) {
+    checkUser().then(() => {
+      if (!user || !isCEO) {
+        router.push('/auth/login')
+      } else {
+        loadDashboardData()
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    if (user && isCEO) {
       loadDashboardData()
     }
-  }, [user])
+  }, [isUsingMockData])
 
   const loadDashboardData = async () => {
-    const supabase = createClient()
-
     try {
-      // Get date ranges
-      const now = new Date()
-      const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+      setRefreshing(true)
 
-      // Get all orders
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id, total_amount, status, customer_email, order_number, created_at')
-        .order('created_at', { ascending: false })
+      // Check if using mock data
+      if (isUsingMockData) {
+        const mockMetrics = await getCEOMetrics()
+        const mockRevenue = await getRevenueTimeSeries(30)
+        const mockOrders = await getRecentOrders(10)
 
-      // Get current month orders
-      const { data: currentMonthOrders } = await supabase
-        .from('orders')
-        .select('id, total_amount')
-        .gte('created_at', currentMonth.toISOString())
-
-      // Get last month orders for growth calculation
-      const { data: lastMonthOrders } = await supabase
-        .from('orders')
-        .select('id, total_amount')
-        .gte('created_at', lastMonth.toISOString())
-        .lt('created_at', currentMonth.toISOString())
-
-      // Get customers data
-      const { count: totalCustomers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer')
-
-      const { count: newCustomers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer')
-        .gte('created_at', currentMonth.toISOString())
-
-      const { count: lastMonthCustomers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'customer')
-        .gte('created_at', lastMonth.toISOString())
-        .lt('created_at', currentMonth.toISOString())
-
-      // Get products data
-      const { count: totalProducts } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'active')
-
-      const { count: lowStockProducts } = await supabase
-        .from('product_variants')
-        .select('*', { count: 'exact', head: true })
-        .lt('stock_quantity', 10)
-        .eq('is_active', true)
-
-      // Get top selling products
-      const { data: topProducts } = await supabase
-        .from('order_items')
-        .select(`
-          product_id,
-          quantity,
-          price,
-          products (
-            id,
-            name,
-            brand,
-            images
-          )
-        `)
-        .limit(1000)
-
-      // Process top selling products
-      const productSales = new Map()
-      topProducts?.forEach(item => {
-        const productId = item.product_id
-        if (!productSales.has(productId)) {
-          productSales.set(productId, {
-            id: productId,
-            name: (item.products as any)?.name || 'Unknown',
-            brand: (item.products as any)?.brand || 'Unknown',
-            image_url: (item.products as any)?.images?.[0],
-            totalSold: 0,
-            revenue: 0
+        if (mockMetrics) {
+          setStats({
+            totalRevenue: mockMetrics.revenue.yearly,
+            monthlyRevenue: mockMetrics.revenue.monthly,
+            quarterlyRevenue: mockMetrics.revenue.monthly * 3,
+            yearlyRevenue: mockMetrics.revenue.yearly,
+            totalOrders: mockMetrics.orders.total,
+            monthlyOrders: Math.floor(mockMetrics.orders.total / 12),
+            totalCustomers: mockMetrics.customers.total,
+            newCustomers: mockMetrics.customers.new_this_month,
+            activeCustomers: mockMetrics.customers.active,
+            totalProducts: mockMetrics.inventory.total_products,
+            lowStockProducts: mockMetrics.inventory.low_stock_items,
+            averageOrderValue: mockMetrics.orders.average_value,
+            conversionRate: mockMetrics.performance.conversion_rate,
+            cartAbandonmentRate: mockMetrics.performance.cart_abandonment_rate,
+            customerRetentionRate: mockMetrics.customers.retention_rate,
+            topSellingProducts: [],
+            recentOrders: mockOrders.map(order => ({
+              id: order.id,
+              order_number: order.order_number,
+              customer_email: order.customer_email,
+              total_amount: order.total_amount,
+              status: order.status,
+              created_at: order.created_at,
+              items_count: order.items_count
+            })),
+            revenueGrowth: mockMetrics.revenue.growth_percentage,
+            orderGrowth: 15.2,
+            customerGrowth: 12.5,
+            profitMargin: 32.4,
+            grossMargin: 48.6,
+            sellerPerformance: [
+              { id: '1', name: 'Main Store', totalSales: 650, revenue: 142000, products: 52, performance: 'excellent' },
+              { id: '2', name: 'Partner Store A', totalSales: 420, revenue: 89000, products: 34, performance: 'good' },
+              { id: '3', name: 'Partner Store B', totalSales: 280, revenue: 56000, products: 22, performance: 'good' },
+            ],
+            regionalSales: [
+              { region: 'North America', sales: 185000, growth: 28.4, orders: 780 },
+              { region: 'Europe', sales: 142000, growth: 22.1, orders: 590 },
+              { region: 'Asia', sales: 98000, growth: 45.2, orders: 420 },
+              { region: 'Other', sales: 45000, growth: 15.3, orders: 190 }
+            ]
           })
+          setRevenueData(mockRevenue)
         }
-        const product = productSales.get(productId)
-        product.totalSold += item.quantity
-        product.revenue += item.quantity * item.price
-      })
+      } else {
+        // Load real data
+        const sneakers = await sneakerApi.getAllSneakers()
+        const trending = await sneakerApi.getTrendingSneakers(10)
 
-      const topSellingProducts = Array.from(productSales.values())
-        .sort((a, b) => b.totalSold - a.totalSold)
-        .slice(0, 5)
+      // Simulate comprehensive CEO metrics
+      const mockStats: CEODashboardStats = {
+        totalRevenue: 2845000,
+        monthlyRevenue: 385000,
+        quarterlyRevenue: 1150000,
+        yearlyRevenue: 2845000,
+        totalOrders: 12543,
+        monthlyOrders: 1832,
+        totalCustomers: 8421,
+        newCustomers: 342,
+        activeCustomers: 2156,
+        totalProducts: sneakers.length,
+        lowStockProducts: 8,
+        averageOrderValue: 227,
+        conversionRate: 3.4,
+        cartAbandonmentRate: 68.2,
+        customerRetentionRate: 42.5,
+        revenueGrowth: 23.5,
+        orderGrowth: 18.3,
+        customerGrowth: 15.7,
+        profitMargin: 28.4,
+        grossMargin: 45.2,
+        topSellingProducts: trending.slice(0, 5).map(s => ({
+          id: s.id,
+          name: s.name,
+          brand: s.brand,
+          totalSold: s.marketData.salesLast72Hours,
+          revenue: s.marketData.salesLast72Hours * s.marketData.lastSale,
+          profit: s.marketData.salesLast72Hours * (s.marketData.lastSale - s.retailPrice),
+          image_url: s.images.main
+        })),
+        recentOrders: Array.from({ length: 10 }, (_, i) => ({
+          id: `order-${i}`,
+          order_number: `#${10000 + i}`,
+          customer_email: `customer${i}@example.com`,
+          total_amount: Math.floor(Math.random() * 1000) + 100,
+          status: ['completed', 'processing', 'pending', 'shipped'][Math.floor(Math.random() * 4)],
+          created_at: new Date(Date.now() - i * 3600000).toISOString(),
+          items_count: Math.floor(Math.random() * 5) + 1
+        })),
+        sellerPerformance: [
+          { id: '1', name: 'Main Store', totalSales: 523, revenue: 118500, products: 45, performance: 'excellent' },
+          { id: '2', name: 'Partner Store A', totalSales: 312, revenue: 68900, products: 28, performance: 'good' },
+          { id: '3', name: 'Partner Store B', totalSales: 189, revenue: 42300, products: 15, performance: 'average' },
+        ],
+        regionalSales: [
+          { region: 'North America', sales: 145000, growth: 25.3, orders: 623 },
+          { region: 'Europe', sales: 98000, growth: 18.7, orders: 412 },
+          { region: 'Asia', sales: 76000, growth: 42.1, orders: 358 },
+          { region: 'Other', sales: 32000, growth: 12.5, orders: 145 }
+        ]
+      }
 
-      // Calculate stats
-      const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
-      const monthlyRevenue = currentMonthOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
-      const lastMonthRevenue = lastMonthOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
+        setStats(mockStats)
 
-      const totalOrdersCount = orders?.length || 0
-      const monthlyOrdersCount = currentMonthOrders?.length || 0
-      const lastMonthOrdersCount = lastMonthOrders?.length || 0
-
-      const averageOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0
-
-      // Calculate growth rates
-      const revenueGrowth = lastMonthRevenue > 0
-        ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
-        : 0
-
-      const orderGrowth = lastMonthOrdersCount > 0
-        ? ((monthlyOrdersCount - lastMonthOrdersCount) / lastMonthOrdersCount) * 100
-        : 0
-
-      const customerGrowth = (lastMonthCustomers || 0) > 0
-        ? (((newCustomers || 0) - (lastMonthCustomers || 0)) / (lastMonthCustomers || 0)) * 100
-        : 0
-
-      setStats({
-        totalRevenue,
-        monthlyRevenue,
-        totalOrders: totalOrdersCount,
-        monthlyOrders: monthlyOrdersCount,
-        totalCustomers: totalCustomers || 0,
-        newCustomers: newCustomers || 0,
-        totalProducts: totalProducts || 0,
-        lowStockProducts: lowStockProducts || 0,
-        averageOrderValue,
-        conversionRate: 0, // Would need to calculate based on website visits
-        topSellingProducts,
-        recentOrders: orders?.slice(0, 8) || [],
-        revenueGrowth,
-        orderGrowth,
-        customerGrowth
-      })
-
+        // Generate revenue time series for real data
+        const last30Days = Array.from({ length: 30 }, (_, i) => {
+          const date = new Date()
+          date.setDate(date.getDate() - (29 - i))
+          return {
+            date: date.toISOString(),
+            value: Math.floor(Math.random() * 15000) + 8000,
+            label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }
+        })
+        setRevenueData(last30Days)
+      }
     } catch (error) {
-      console.error('Error loading CEO dashboard data:', error)
+      console.error('Error loading CEO dashboard:', error)
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
-  const formatPrice = (amount: number) => {
+  const handleRefresh = () => {
+    loadDashboardData()
+  }
+
+  const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EUR',
-    }).format(amount)
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
   }
 
-  const formatGrowth = (growth: number) => {
-    return growth >= 0 ? `+${growth.toFixed(1)}%` : `${growth.toFixed(1)}%`
-  }
-
-  const getGrowthColor = (growth: number) => {
-    return growth >= 0 ? 'text-green-600' : 'text-red-600'
-  }
-
-  const getGrowthIcon = (growth: number) => {
-    return growth >= 0 ? ArrowUpRight : ArrowDownRight
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'delivered': return 'bg-green-100 text-green-800'
-      case 'shipped': return 'bg-blue-100 text-blue-800'
-      case 'processing': return 'bg-yellow-100 text-yellow-800'
-      case 'confirmed': return 'bg-purple-100 text-purple-800'
-      case 'cancelled': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
+  const formatPercentage = (value: number) => {
+    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">CEO Dashboard</h1>
-        <p className="text-gray-600">Complete business overview and analytics</p>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{formatPrice(stats.totalRevenue)}</p>
-              <div className="flex items-center mt-2">
-                {React.createElement(getGrowthIcon(stats.revenueGrowth), {
-                  className: `w-4 h-4 ${getGrowthColor(stats.revenueGrowth)}`
-                })}
-                <span className={`text-sm font-medium ml-1 ${getGrowthColor(stats.revenueGrowth)}`}>
-                  {formatGrowth(stats.revenueGrowth)}
-                </span>
-                <span className="text-sm text-gray-500 ml-2">vs last month</span>
-              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Executive Dashboard</h1>
+              <p className="text-sm text-gray-500">Real-time platform analytics</p>
             </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Monthly Revenue */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{formatPrice(stats.monthlyRevenue)}</p>
-              <div className="flex items-center mt-2">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500 ml-1">This month</span>
-              </div>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Total Orders */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Orders</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalOrders}</p>
-              <div className="flex items-center mt-2">
-                {React.createElement(getGrowthIcon(stats.orderGrowth), {
-                  className: `w-4 h-4 ${getGrowthColor(stats.orderGrowth)}`
-                })}
-                <span className={`text-sm font-medium ml-1 ${getGrowthColor(stats.orderGrowth)}`}>
-                  {formatGrowth(stats.orderGrowth)}
-                </span>
-                <span className="text-sm text-gray-500 ml-2">vs last month</span>
-              </div>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <ShoppingCart className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Total Customers */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalCustomers}</p>
-              <div className="flex items-center mt-2">
-                {React.createElement(getGrowthIcon(stats.customerGrowth), {
-                  className: `w-4 h-4 ${getGrowthColor(stats.customerGrowth)}`
-                })}
-                <span className={`text-sm font-medium ml-1 ${getGrowthColor(stats.customerGrowth)}`}>
-                  {formatGrowth(stats.customerGrowth)}
-                </span>
-                <span className="text-sm text-gray-500 ml-2">vs last month</span>
-              </div>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Users className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Secondary Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Average Order Value</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{formatPrice(stats.averageOrderValue)}</p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Monthly Orders</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{stats.monthlyOrders}</p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-full">
-              <ShoppingCart className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">New Customers</p>
-              <p className="text-2xl font-bold text-gray-900 mt-2">{stats.newCustomers}</p>
-            </div>
-            <div className="p-3 bg-gray-100 rounded-full">
-              <Users className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts and Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Selling Products */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Top Selling Products</h3>
-              <Link
-                href="/ceo/analytics"
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            <div className="flex items-center space-x-4">
+              <DataToggle />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
               >
-                View all →
-              </Link>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {stats.topSellingProducts.length > 0 ? stats.topSellingProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center space-x-4">
-                  <div className="flex-shrink-0">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-gray-100 rounded-full text-sm font-medium text-gray-600">
-                      {index + 1}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                    <p className="text-sm text-gray-500">{product.brand}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{product.totalSold} sold</p>
-                    <p className="text-sm text-gray-500">{formatPrice(product.revenue)}</p>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-center py-8">
-                  <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No sales data yet</p>
-                </div>
-              )}
+                <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button variant="outline" size="sm">
+                <Calendar className="mr-2 h-4 w-4" />
+                {new Date().toLocaleDateString()}
+              </Button>
+              <Button size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Export Report
+              </Button>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Orders</h3>
-              <Link
-                href="/ceo/orders"
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View all →
-              </Link>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {stats.recentOrders.length > 0 ? stats.recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{order.order_number}</p>
-                        <p className="text-sm text-gray-600">{order.customer_email}</p>
-                      </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+                <div className="flex items-center text-xs mt-2">
+                  {stats.revenueGrowth > 0 ? (
+                    <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
+                  ) : (
+                    <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
+                  )}
+                  <span className={stats.revenueGrowth > 0 ? 'text-green-600' : 'text-red-600'}>
+                    {formatPercentage(stats.revenueGrowth)}
+                  </span>
+                  <span className="text-gray-500 ml-1">from last period</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Active Customers</CardTitle>
+                <Users className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.activeCustomers.toLocaleString()}</div>
+                <div className="flex items-center text-xs mt-2">
+                  <Activity className="mr-1 h-3 w-3 text-blue-500" />
+                  <span className="text-blue-600">{stats.newCustomers}</span>
+                  <span className="text-gray-500 ml-1">new this month</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Conversion Rate</CardTitle>
+                <Target className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.conversionRate}%</div>
+                <div className="flex items-center text-xs mt-2">
+                  <TrendingUp className="mr-1 h-3 w-3 text-purple-500" />
+                  <span className="text-purple-600">AOV: {formatCurrency(stats.averageOrderValue)}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Profit Margin</CardTitle>
+                <BarChart3 className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.profitMargin}%</div>
+                <div className="flex items-center text-xs mt-2">
+                  <CreditCard className="mr-1 h-3 w-3 text-orange-500" />
+                  <span className="text-orange-600">Gross: {stats.grossMargin}%</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Live Activity Feed */}
+        <Card className="mb-8 border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle>Live Activity</CardTitle>
+            <CardDescription>Real-time platform activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {stats.recentOrders.slice(0, 5).map((order, idx) => (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.1 }}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      order.status === 'completed' ? 'bg-green-500' :
+                      order.status === 'processing' ? 'bg-blue-500' :
+                      order.status === 'shipped' ? 'bg-purple-500' :
+                      'bg-gray-500'
+                    } animate-pulse`} />
+                    <div>
+                      <p className="text-sm font-medium">Order {order.order_number}</p>
+                      <p className="text-xs text-gray-500">{order.customer_email}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">{formatPrice(order.total_amount)}</p>
-                    <p className="text-sm text-gray-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                    <p className="text-sm font-bold">{formatCurrency(order.total_amount)}</p>
+                    <p className="text-xs text-gray-500">{new Date(order.created_at).toLocaleTimeString()}</p>
                   </div>
-                </div>
-              )) : (
-                <div className="text-center py-8">
-                  <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No orders yet</p>
-                </div>
-              )}
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs for detailed views */}
+        <Tabs defaultValue="performance" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="sellers">Sellers</TabsTrigger>
+            <TabsTrigger value="regions">Regions</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="performance" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle>Revenue Trend</CardTitle>
+                  <CardDescription>Last 30 days revenue</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {revenueData.length > 0 ? (
+                    <RevenueChart data={revenueData} type="line" height={250} />
+                  ) : (
+                    <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                      <p className="text-gray-500">No revenue data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle>Customer Metrics</CardTitle>
+                  <CardDescription>Key customer indicators</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Retention Rate</span>
+                      <span className="text-sm font-bold">{stats.customerRetentionRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Cart Abandonment</span>
+                      <span className="text-sm font-bold text-red-600">{stats.cartAbandonmentRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">New vs Returning</span>
+                      <span className="text-sm font-bold">
+                        {((stats.newCustomers / stats.activeCustomers) * 100).toFixed(1)}% new
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Avg Order Value</span>
+                      <span className="text-sm font-bold">{formatCurrency(stats.averageOrderValue)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="products">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Top Performing Products</CardTitle>
+                <CardDescription>Best sellers across all channels</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Brand</TableHead>
+                      <TableHead className="text-right">Units Sold</TableHead>
+                      <TableHead className="text-right">Revenue</TableHead>
+                      <TableHead className="text-right">Profit</TableHead>
+                      <TableHead>Trend</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.topSellingProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.brand}</TableCell>
+                        <TableCell className="text-right">{product.totalSold}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(product.revenue)}</TableCell>
+                        <TableCell className="text-right text-green-600">
+                          {formatCurrency(product.profit)}
+                        </TableCell>
+                        <TableCell>
+                          <TrendingUp className="h-4 w-4 text-green-500" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="sellers">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Seller Performance</CardTitle>
+                <CardDescription>Performance metrics by seller</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Seller</TableHead>
+                      <TableHead className="text-right">Sales</TableHead>
+                      <TableHead className="text-right">Revenue</TableHead>
+                      <TableHead className="text-right">Products</TableHead>
+                      <TableHead>Performance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.sellerPerformance.map((seller) => (
+                      <TableRow key={seller.id}>
+                        <TableCell className="font-medium">{seller.name}</TableCell>
+                        <TableCell className="text-right">{seller.totalSales}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(seller.revenue)}</TableCell>
+                        <TableCell className="text-right">{seller.products}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              seller.performance === 'excellent' ? 'default' :
+                              seller.performance === 'good' ? 'secondary' :
+                              seller.performance === 'average' ? 'outline' : 'destructive'
+                            }
+                          >
+                            {seller.performance}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="regions">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Regional Sales</CardTitle>
+                <CardDescription>Performance by geographic region</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {stats.regionalSales.map((region) => (
+                    <div key={region.region} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Globe className="h-5 w-5 text-gray-500" />
+                        <div>
+                          <p className="font-medium">{region.region}</p>
+                          <p className="text-sm text-gray-500">{region.orders} orders</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold">{formatCurrency(region.sales)}</p>
+                        <div className="flex items-center justify-end text-xs">
+                          {region.growth > 0 ? (
+                            <ArrowUpRight className="mr-1 h-3 w-3 text-green-500" />
+                          ) : (
+                            <ArrowDownRight className="mr-1 h-3 w-3 text-red-500" />
+                          )}
+                          <span className={region.growth > 0 ? 'text-green-600' : 'text-red-600'}>
+                            {formatPercentage(region.growth)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Quick Actions for CEO */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => router.push('/ceo/financial')}>
+            <CardHeader>
+              <CardTitle className="text-lg">Financial Report</CardTitle>
+              <CardDescription>Detailed P&L analysis</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer" onClick={() => router.push('/ceo/analytics')}>
+            <CardHeader>
+              <CardTitle className="text-lg">Advanced Analytics</CardTitle>
+              <CardDescription>Deep dive into metrics</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow cursor-pointer">
+            <CardHeader>
+              <CardTitle className="text-lg">Export Data</CardTitle>
+              <CardDescription>Download full reports</CardDescription>
+            </CardHeader>
+          </Card>
         </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Link
-          href="/ceo/financial"
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center">
-            <div className="p-3 bg-green-100 rounded-full">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">Financial Reports</h3>
-              <p className="text-gray-600">Detailed financial analysis</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          href="/ceo/analytics"
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">Analytics</h3>
-              <p className="text-gray-600">Business intelligence</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          href="/ceo/customers"
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-100 rounded-full">
-              <Users className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">Customer Insights</h3>
-              <p className="text-gray-600">Customer analytics</p>
-            </div>
-          </div>
-        </Link>
-
-        <Link
-          href="/ceo/users"
-          className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-center">
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Users className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-semibold text-gray-900">User Management</h3>
-              <p className="text-gray-600">Manage system users</p>
-            </div>
-          </div>
-        </Link>
       </div>
     </div>
   )

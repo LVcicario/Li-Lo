@@ -90,36 +90,52 @@ export async function getProducts(
   limit?: number,
   offset?: number
 ): Promise<ProductData[]> {
-  const supabase = createClient()
+  // Use the API endpoint if we're on the client side
+  if (typeof window !== 'undefined') {
+    try {
+      const params = new URLSearchParams();
+      if (limit) params.append('limit', limit.toString());
+      if (offset) params.append('offset', offset.toString());
+      if (filters.search) params.append('search', filters.search);
 
-  let query = supabase
-    .from('products')
-    .select(`
-      *,
-      brand:brands(id, name, slug),
-      category:categories(id, name, slug),
-      images:product_images(id, url, alt_text, is_primary, sort_order),
-      variants:product_variants(
-        id, sku, size, size_type, stock_quantity,
-        reserved_quantity, price_adjustment, is_active
-      )
-    `)
-    .eq('status', 'active')
+      const response = await fetch(`/api/products?${params.toString()}`);
+      if (!response.ok) {
+        console.error('Failed to fetch products from API');
+        return [];
+      }
+
+      const data = await response.json();
+      return data.products || [];
+    } catch (apiError) {
+      console.error('Error fetching products from API:', apiError);
+    }
+  }
+    // Fallback to database if API fails
+    const supabase = createClient()
+
+    let query = supabase
+      .from('products')
+      .select(`
+        *,
+        product_images(id, url, alt_text, is_primary, sort_order)
+      `)
+      .eq('status', 'active')
 
   // Apply filters
   if (filters.search) {
     query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`)
   }
 
-  if (filters.brands && filters.brands.length > 0) {
-    const brandIds = await getBrandIdsBySlug(filters.brands)
-    query = query.in('brand_id', brandIds)
-  }
+  // Skip brand and category filters for now since we don't have those tables
+  // if (filters.brands && filters.brands.length > 0) {
+  //   const brandIds = await getBrandIdsBySlug(filters.brands)
+  //   query = query.in('brand_id', brandIds)
+  // }
 
-  if (filters.categories && filters.categories.length > 0) {
-    const categoryIds = await getCategoryIdsBySlug(filters.categories)
-    query = query.in('category_id', categoryIds)
-  }
+  // if (filters.categories && filters.categories.length > 0) {
+  //   const categoryIds = await getCategoryIdsBySlug(filters.categories)
+  //   query = query.in('category_id', categoryIds)
+  // }
 
   if (filters.category_types && filters.category_types.length > 0) {
     query = query.in('category_type', filters.category_types)
@@ -151,23 +167,56 @@ export async function getProducts(
 
   // Transform and enhance data
   const transformedProducts: ProductData[] = products.map(product => {
-    const totalStock = product.variants?.reduce((sum: number, variant: any) =>
-      sum + (variant.is_active ? variant.stock_quantity : 0), 0
-    ) || 0
+    // Use stock field directly from product
+    const totalStock = product.stock || 5
 
-    const availableSizes = product.variants
-      ?.filter((variant: any) => variant.is_active && variant.stock_quantity > 0)
-      ?.map((variant: any) => variant.size) || []
+    // Create dummy variants with sizes
+    const variants = [
+      { id: `${product.id}-7`, sku: `${product.sku}-7`, size: '7', size_type: 'US', stock_quantity: totalStock > 0 ? 1 : 0, reserved_quantity: 0, price_adjustment: 0, is_active: true },
+      { id: `${product.id}-8`, sku: `${product.sku}-8`, size: '8', size_type: 'US', stock_quantity: totalStock > 0 ? 1 : 0, reserved_quantity: 0, price_adjustment: 0, is_active: true },
+      { id: `${product.id}-9`, sku: `${product.sku}-9`, size: '9', size_type: 'US', stock_quantity: totalStock > 0 ? 1 : 0, reserved_quantity: 0, price_adjustment: 0, is_active: true },
+      { id: `${product.id}-10`, sku: `${product.sku}-10`, size: '10', size_type: 'US', stock_quantity: totalStock > 0 ? 1 : 0, reserved_quantity: 0, price_adjustment: 0, is_active: true },
+      { id: `${product.id}-11`, sku: `${product.sku}-11`, size: '11', size_type: 'US', stock_quantity: totalStock > 0 ? 1 : 0, reserved_quantity: 0, price_adjustment: 0, is_active: true }
+    ]
 
-    const sortedImages = product.images
+    const availableSizes = totalStock > 0 ? ['7', '8', '9', '10', '11'] : []
+
+    let sortedImages = product.product_images
       ?.sort((a: any, b: any) => {
         if (a.is_primary && !b.is_primary) return -1
         if (!a.is_primary && b.is_primary) return 1
         return a.sort_order - b.sort_order
       }) || []
 
+    // Use original_image_url if no images
+    if (sortedImages.length === 0 && product.original_image_url) {
+      sortedImages = [{
+        id: 'primary',
+        url: product.original_image_url,
+        alt_text: product.name,
+        is_primary: true,
+        sort_order: 0
+      }]
+    }
+
+    // Create brand and category objects
+    const brand = {
+      id: product.brand_id || 'nike',
+      name: getBrandName(product.name),
+      slug: getBrandSlug(product.name)
+    }
+
+    const category = {
+      id: product.category_id || 'sneakers',
+      name: 'Sneakers',
+      slug: 'sneakers'
+    }
+
     return {
       ...product,
+      brand,
+      category,
+      variants,
       total_stock: totalStock,
       in_stock: totalStock > 0,
       available_sizes: availableSizes,
@@ -298,36 +347,28 @@ export async function searchProducts(
 
 // Get all brands
 export async function getBrands() {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('brands')
-    .select('*')
-    .eq('is_active', true)
-    .order('name')
-
-  if (error) {
-    console.error('Error fetching brands:', error)
-    return []
-  }
-
-  return data || []
+  // Return hardcoded brands since brands table doesn't exist yet
+  return [
+    { id: 'nike', name: 'Nike', slug: 'nike', is_active: true },
+    { id: 'jordan', name: 'Jordan', slug: 'jordan', is_active: true },
+    { id: 'adidas', name: 'Adidas', slug: 'adidas', is_active: true },
+    { id: 'yeezy', name: 'Yeezy', slug: 'yeezy', is_active: true },
+    { id: 'new-balance', name: 'New Balance', slug: 'new-balance', is_active: true },
+    { id: 'off-white', name: 'Off-White', slug: 'off-white', is_active: true },
+    { id: 'travis-scott', name: 'Travis Scott', slug: 'travis-scott', is_active: true },
+    { id: 'fragment', name: 'Fragment', slug: 'fragment', is_active: true }
+  ]
 }
 
 // Get all categories
 export async function getCategories() {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order')
-
-  if (error) {
-    console.error('Error fetching categories:', error)
-    return []
-  }
-
-  return data || []
+  // Return hardcoded categories since categories table doesn't exist yet
+  return [
+    { id: 'sneakers', name: 'Sneakers', slug: 'sneakers', is_active: true, sort_order: 1 },
+    { id: 'limited', name: 'Limited Edition', slug: 'limited', is_active: true, sort_order: 2 },
+    { id: 'exclusive', name: 'Exclusive', slug: 'exclusive', is_active: true, sort_order: 3 },
+    { id: 'grail', name: 'Grails', slug: 'grail', is_active: true, sort_order: 4 }
+  ]
 }
 
 // Helper functions
@@ -394,6 +435,24 @@ function transformSingleProduct(product: any): ProductData {
     base_price: product.base_price || 150,
     variants: product.variants || []
   }
+}
+
+// Helper to get brand name from product name
+function getBrandName(productName: string): string {
+  const name = productName.toLowerCase()
+  if (name.includes('jordan') || name.includes('air jordan')) return 'Jordan'
+  if (name.includes('yeezy') || name.includes('adidas')) return 'Adidas'
+  if (name.includes('nike') || name.includes('dunk') || name.includes('air max')) return 'Nike'
+  if (name.includes('new balance') || name.includes('nb')) return 'New Balance'
+  if (name.includes('off-white')) return 'Off-White'
+  if (name.includes('travis')) return 'Travis Scott'
+  if (name.includes('fragment')) return 'Fragment'
+  return 'Nike'
+}
+
+// Helper to get brand slug from product name
+function getBrandSlug(productName: string): string {
+  return getBrandName(productName).toLowerCase().replace(/\s+/g, '-')
 }
 
 // Helper function to get appropriate product image based on slug/name

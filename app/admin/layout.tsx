@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/auth-store'
-import { checkRouteAccess } from '@/lib/role-routing'
 import {
   LayoutDashboard,
   Package,
@@ -27,7 +26,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, userRole, isAdmin, checkUser, signOut, loading, profile } = useAuthStore()
+  const { user, userRole, checkUser, signOut, loading, profile } = useAuthStore()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -36,12 +35,12 @@ export default function AdminLayout({
       if (!loading) {
         if (!user) {
           router.push('/auth/login')
-        } else if (!isAdmin && userRole !== 'super_admin') {
-          checkRouteAccess('/admin', userRole)
+        } else if (userRole !== 'seller' && userRole !== 'ceo') {
+          router.push('/account/dashboard')
         }
       }
     })
-  }, [user, userRole, isAdmin, loading])
+  }, [user, userRole, loading])
 
   const handleSignOut = async () => {
     await signOut()
@@ -56,7 +55,7 @@ export default function AdminLayout({
     )
   }
 
-  if (!user || (!isAdmin && userRole !== 'super_admin')) {
+  if (!user || (userRole !== 'seller' && userRole !== 'ceo')) {
     return null
   }
 

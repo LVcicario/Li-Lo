@@ -8,7 +8,8 @@ import { useLanguageStore } from '@/lib/i18n'
 export function Newsletter() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const { t } = useLanguageStore()
+  // Translation disabled - using hardcoded English text
+  // const { t } = useLanguageStore()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,10 +32,10 @@ export function Newsletter() {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-4xl lg:text-6xl font-bold tracking-tighter mb-4">
-            {t('footer.newsletter')}
+            STAY IN THE LOOP
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider mb-8">
-            {t('footer.newsletterText')}
+            Get exclusive access to limited drops and insider news
           </p>
 
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -42,7 +43,7 @@ export function Newsletter() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={t('checkout.email').toUpperCase()}
+              placeholder="EMAIL ADDRESS"
               required
               className="flex-1 px-6 py-4 bg-transparent border border-white/30 font-mono text-sm tracking-wider placeholder:text-gray-500 focus:outline-none focus:border-white transition-colors"
             />
@@ -54,12 +55,12 @@ export function Newsletter() {
               className="px-8 py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {status === 'loading' ? (
-                t('common.loading')
+                'Loading...'
               ) : status === 'success' ? (
-                t('account.welcome')
+                'Welcome!'
               ) : (
                 <>
-                  {t('footer.subscribe')}
+                  SUBSCRIBE
                   <Send className="ml-2 w-4 h-4" />
                 </>
               )}
@@ -72,12 +73,12 @@ export function Newsletter() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 text-sm text-green-500 font-mono"
             >
-              {t('notifications.subscribed')}
+              Thank you for subscribing! Check your email for confirmation.
             </motion.p>
           )}
 
           <p className="mt-8 text-xs text-gray-500 font-mono">
-            {t('footer.newsletterText')}
+            No spam, unsubscribe anytime
           </p>
         </motion.div>
       </div>

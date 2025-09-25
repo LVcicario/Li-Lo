@@ -35,9 +35,20 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await signIn(email, password);
-      toast.success('Welcome back!');
-      router.push('/account/dashboard');
+      // signIn now returns the appropriate dashboard URL based on role
+      const dashboardUrl = await signIn(email, password);
+
+      // Show role-specific welcome message
+      if (email === 'ceo@li-lo.com') {
+        toast.success('Welcome back, CEO! Redirecting to executive dashboard...');
+      } else if (email.includes('seller') || email === 'admin@li-lo.com') {
+        toast.success('Welcome back! Redirecting to seller dashboard...');
+      } else {
+        toast.success('Welcome back!');
+      }
+
+      // Redirect to role-specific dashboard
+      router.push(dashboardUrl);
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {

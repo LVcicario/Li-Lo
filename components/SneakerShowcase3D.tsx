@@ -103,7 +103,9 @@ export function SneakerShowcase3D() {
                       src={sneaker.images[0]}
                       alt={sneaker.name}
                       fill
-                      className="object-cover"
+                      className="object-contain p-8 bg-gradient-to-br from-gray-100 to-white"
+                      priority={index === 0}
+                      quality={100}
                     />
                   </motion.div>
 

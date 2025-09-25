@@ -14,7 +14,8 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { getTotalItems, toggleCart } = useCartStore()
-  const { user, isAdmin, userRole } = useAuthStore()
+  const { user, userRole } = useAuthStore()
+  const isSeller = userRole === 'seller' || userRole === 'ceo'
   const { currentLanguage, setLanguage, t, initializeLanguage } = useLanguageStore()
   const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [showLangMenu, setShowLangMenu] = useState(false)
@@ -35,11 +36,11 @@ export function Navbar() {
   }, [])
 
   const navLinks = [
-    { href: '/collections', label: t('nav.collections') },
-    { href: '/sneakers', label: t('nav.allSneakers') },
-    { href: '/exclusive', label: t('nav.exclusive') },
-    { href: '/limited-edition', label: t('nav.limitedEdition') },
-    { href: '/about', label: t('nav.about') },
+    { href: '/collections', label: 'Collections' },
+    { href: '/sneakers', label: 'All Sneakers' },
+    { href: '/exclusive', label: 'Exclusive' },
+    { href: '/limited-edition', label: 'Limited Edition' },
+    { href: '/about', label: 'About' },
   ]
 
   return (
@@ -183,7 +184,7 @@ export function Navbar() {
               </button>
 
               {/* Role-based navigation */}
-              {isAdmin && (
+              {isSeller && (
                 <Link
                   href="/admin"
                   className="p-2 hover:bg-white/10 rounded-full transition-colors group"
@@ -192,7 +193,7 @@ export function Navbar() {
                   <Shield className="w-5 h-5 text-red-400 group-hover:text-red-300" />
                 </Link>
               )}
-              {userRole === 'admin' && !isAdmin && (
+              {userRole === 'seller' && (
                 <Link
                   href="/seller"
                   className="p-2 hover:bg-white/10 rounded-full transition-colors group"

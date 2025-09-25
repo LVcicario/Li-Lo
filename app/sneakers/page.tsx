@@ -1,6 +1,9 @@
 'use client'
 
 import { Suspense, useState, useEffect } from 'react'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -35,18 +38,13 @@ function SneakersContent() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [productsData, brandsData, categoriesData] = await Promise.all([
-          getProducts(
-            searchQuery ? { search: searchQuery } : {},
-            getSortConfig(sortBy)
-          ),
-          getBrands(),
-          getCategories()
-        ])
+        // FETCH DIRECTLY FROM API
+        const response = await fetch('/api/products?limit=100')
+        const data = await response.json()
 
-        setProducts(productsData)
-        setBrands(brandsData)
-        setCategories(categoriesData)
+        setProducts(data.products || [])
+        setBrands(data.filters?.brands || [])
+        setCategories(data.filters?.categories || [])
       } catch (error) {
         console.error('Error loading data:', error)
       } finally {
@@ -64,20 +62,10 @@ function SneakersContent() {
 
       setLoading(true)
       try {
-        const productFilters: ProductFilters = {}
-
-        if (searchQuery) productFilters.search = searchQuery
-        if (filters.brands.length > 0) productFilters.brands = filters.brands
-        if (filters.categories.length > 0) productFilters.categories = filters.categories
-        if (filters.category_types.length > 0) productFilters.category_types = filters.category_types
-        if (filters.priceRange[0] > 0 || filters.priceRange[1] < 100000) {
-          productFilters.price_range = filters.priceRange
-        }
-        if (filters.sizes.length > 0) productFilters.sizes = filters.sizes
-        if (filters.in_stock_only) productFilters.in_stock_only = true
-
-        const productsData = await getProducts(productFilters, getSortConfig(sortBy))
-        setProducts(productsData)
+        // FETCH DIRECTLY FROM API
+        const response = await fetch('/api/products?limit=100')
+        const data = await response.json()
+        setProducts(data.products || [])
       } catch (error) {
         console.error('Error applying filters:', error)
       } finally {

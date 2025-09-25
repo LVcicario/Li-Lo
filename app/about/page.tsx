@@ -18,18 +18,18 @@ export default function AboutPage() {
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
   const timeline = [
-    { year: '2020', event: t('pages.about.2020'), description: t('pages.about.2020Desc') },
-    { year: '2021', event: t('pages.about.2021'), description: t('pages.about.2021Desc') },
-    { year: '2022', event: t('pages.about.2022'), description: t('pages.about.2022Desc') },
-    { year: '2023', event: t('pages.about.2023'), description: t('pages.about.2023Desc') },
-    { year: '2024', event: t('pages.about.2024'), description: t('pages.about.2024Desc') }
+    { year: '2020', event: 'The Beginning', description: 'Founded in Paris with a vision to revolutionize luxury sneaker retail' },
+    { year: '2021', event: 'First Exclusive Drop', description: 'Launched our first limited edition collection with 500 pairs sold in 3 minutes' },
+    { year: '2022', event: 'Global Expansion', description: 'Expanded operations to 15 countries with same-day delivery in major cities' },
+    { year: '2023', event: 'Community Milestone', description: 'Reached 10,000 VIP members and launched authentication guarantee program' },
+    { year: '2024', event: 'Innovation Leader', description: 'Introduced AI-powered authentication and virtual try-on technology' }
   ]
 
   const values = [
-    { icon: Trophy, title: t('pages.about.excellence'), description: t('pages.about.excellenceDesc') },
-    { icon: Users, title: t('pages.about.community2'), description: t('pages.about.communityDesc2') },
-    { icon: Zap, title: t('pages.about.innovation'), description: t('pages.about.innovationDesc') },
-    { icon: MapPin, title: t('pages.about.global'), description: t('pages.about.globalDesc') }
+    { icon: Trophy, title: 'Excellence', description: 'We curate only the finest, most exclusive sneakers in the world' },
+    { icon: Users, title: 'Community', description: 'Building a global network of passionate sneaker enthusiasts' },
+    { icon: Zap, title: 'Innovation', description: 'Pioneering new ways to discover, authenticate, and collect' },
+    { icon: MapPin, title: 'Global Reach', description: 'Delivering premium sneakers to collectors worldwide' }
   ]
 
   return (
@@ -58,10 +58,10 @@ export default function AboutPage() {
             className="text-center mb-20"
           >
             <h1 className="text-7xl lg:text-9xl font-bold tracking-tighter mb-6">
-              {t('pages.about.title')}
+              ABOUT US
             </h1>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              {t('pages.about.subtitle')}
+              Where passion meets exclusivity. Discover the story behind the most coveted sneaker destination.
             </p>
           </motion.div>
 
@@ -72,9 +72,9 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="space-y-6"
             >
-              <h2 className="text-4xl font-bold tracking-tighter">{t('pages.about.ourStory')}</h2>
+              <h2 className="text-4xl font-bold tracking-tighter">Our Story</h2>
               <p className="text-gray-400 leading-relaxed">
-                {t('pages.about.storyDescription')}
+                Born from a shared obsession with rare sneakers and street culture, Li-Lo was founded by collectors, for collectors. We understand the thrill of the hunt, the joy of the unboxing, and the pride of ownership. Every pair we offer has been meticulously authenticated and represents a piece of sneaker history.
               </p>
             </motion.div>
 
@@ -100,7 +100,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-bold tracking-tighter text-center mb-16">{t('pages.about.timeline')}</h2>
+            <h2 className="text-4xl font-bold tracking-tighter text-center mb-16">Our Journey</h2>
 
             <div className="relative">
               <div className="absolute left-1/2 -translate-x-1/2 h-full w-px bg-gradient-to-b from-white via-white/50 to-transparent" />
@@ -142,7 +142,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
             className="mb-32"
           >
-            <h2 className="text-4xl font-bold tracking-tighter text-center mb-16">{t('pages.about.values')}</h2>
+            <h2 className="text-4xl font-bold tracking-tighter text-center mb-16">Our Values</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => {
@@ -183,17 +183,17 @@ export default function AboutPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/3 to-pink-500/3 blur-3xl" />
             <div className="relative z-10">
               <h2 className="text-5xl font-bold tracking-tighter mb-6">
-                {t('pages.about.joinTheRevolution')}
+                Join The Revolution
               </h2>
               <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-                {t('pages.about.revolutionDesc')}
+                Be part of an exclusive community that defines the future of sneaker culture.
               </p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors"
               >
-                {t('pages.about.getExclusiveAccess')}
+                GET EXCLUSIVE ACCESS
               </motion.button>
             </div>
           </motion.div>

@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/auth-store'
-import { checkRouteAccess } from '@/lib/role-routing'
 import { User, Package, MessageCircle, Settings, LogOut, Home } from 'lucide-react'
 
 export default function ClientLayout({
@@ -12,7 +11,8 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, userRole, isCustomer, checkUser, signOut, loading } = useAuthStore()
+  const { user, userRole, checkUser, signOut, loading } = useAuthStore()
+  const isClient = userRole === 'client'
   const router = useRouter()
 
   useEffect(() => {
@@ -20,12 +20,14 @@ export default function ClientLayout({
       if (!loading) {
         if (!user) {
           router.push('/auth/login')
-        } else if (!isCustomer) {
-          checkRouteAccess('/client', userRole)
+        } else if (!isClient) {
+          // Redirect to appropriate dashboard based on role
+          const dashboardUrl = userRole === 'ceo' ? '/ceo' : userRole === 'seller' ? '/seller/dashboard' : '/'
+          router.push(dashboardUrl)
         }
       }
     })
-  }, [user, userRole, isCustomer, loading])
+  }, [user, userRole, isClient, loading])
 
   const handleSignOut = async () => {
     await signOut()
@@ -40,7 +42,7 @@ export default function ClientLayout({
     )
   }
 
-  if (!user || !isCustomer) {
+  if (!user || !isClient) {
     return null
   }
 
