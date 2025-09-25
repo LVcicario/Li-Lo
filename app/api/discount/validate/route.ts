@@ -1,6 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Predefined discount codes for testing
+const DISCOUNT_CODES = {
+  'WELCOME10': {
+    code: 'WELCOME10',
+    name: 'Welcome Discount',
+    description: '10% off your first order',
+    type: 'percentage',
+    value: 10,
+    is_active: true,
+    minimum_order_amount: 100
+  },
+  'SNEAKER20': {
+    code: 'SNEAKER20',
+    name: 'Sneaker Sale',
+    description: '20% off selected sneakers',
+    type: 'percentage',
+    value: 20,
+    is_active: true,
+    minimum_order_amount: 200
+  },
+  'FREESHIP': {
+    code: 'FREESHIP',
+    name: 'Free Shipping',
+    description: 'Free shipping on all orders',
+    type: 'free_shipping',
+    value: 0,
+    is_active: true,
+    minimum_order_amount: 0
+  },
+  'SAVE50': {
+    code: 'SAVE50',
+    name: '$50 Off',
+    description: '$50 off orders over $500',
+    type: 'fixed_amount',
+    value: 50,
+    is_active: true,
+    minimum_order_amount: 500
+  }
+}
+
+// Support GET for testing
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    message: 'Discount validation endpoint',
+    available_codes: Object.keys(DISCOUNT_CODES),
+    usage: 'POST /api/discount/validate with { code: "CODE", subtotal: 100 }'
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { code, subtotal } = await request.json()
@@ -14,15 +63,30 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient()
 
-    // Find the discount code
-    const { data: discount, error } = await supabase
-      .from('discount_codes')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .eq('is_active', true)
-      .single()
+    let discount = null;
 
-    if (error || !discount) {
+    // Try database first
+    try {
+      const { data, error } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .eq('is_active', true)
+        .single()
+
+      if (!error && data) {
+        discount = data;
+      }
+    } catch (dbError) {
+      console.log('Using fallback discount codes');
+    }
+
+    // Fallback to predefined codes
+    if (!discount) {
+      discount = DISCOUNT_CODES[code.toUpperCase() as keyof typeof DISCOUNT_CODES];
+    }
+
+    if (!discount) {
       return NextResponse.json(
         { error: 'Invalid discount code' },
         { status: 400 }

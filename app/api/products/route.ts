@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sneakerApi } from '@/lib/sneaker-api';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -20,17 +21,18 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
 
-    // Start building the query
-    let query = supabase
-      .from('products')
-      .select(`
-        *,
-        brand:brands(name, slug),
-        category:categories(name, slug),
-        images:product_images(url, alt_text, is_primary, sort_order),
-        variants:product_variants(id, size, stock_quantity, price_adjustment, is_active)
-      `)
-      .eq('status', 'active');
+    // Try database first
+    try {
+      let query = supabase
+        .from('products')
+        .select(`
+          *,
+          brand:brands(name, slug),
+          category:categories(name, slug),
+          images:product_images(url, alt_text, is_primary, sort_order),
+          variants:product_variants(id, size, stock_quantity, price_adjustment, is_active)
+        `)
+        .eq('status', 'active');
 
     // Apply filters
     if (category) {
@@ -98,35 +100,163 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get aggregations for filters
-    const { data: brands } = await supabase
-      .from('brands')
-      .select('id, name, slug')
-      .order('name');
+      // Get aggregations for filters
+      const { data: brands } = await supabase
+        .from('brands')
+        .select('id, name, slug')
+        .order('name');
 
-    const { data: categories } = await supabase
-      .from('categories')
-      .select('id, name, slug')
-      .order('name');
+      const { data: categories } = await supabase
+        .from('categories')
+        .select('id, name, slug')
+        .order('name');
 
-    const { data: sizes } = await supabase
-      .from('product_variants')
-      .select('size')
-      .gt('stock_quantity', 0);
+      const { data: sizes } = await supabase
+        .from('product_variants')
+        .select('size')
+        .gt('stock_quantity', 0);
 
-    const uniqueSizes = [...new Set(sizes?.map(s => s.size))].sort();
+      const uniqueSizes = [...new Set(sizes?.map(s => s.size))].sort();
+
+      if (filteredProducts && filteredProducts.length > 0) {
+        return NextResponse.json({
+          products: filteredProducts,
+          pagination: {
+            page,
+            limit,
+            total: count || 0,
+            totalPages: Math.ceil((count || 0) / limit),
+          },
+          filters: {
+            brands: brands || [],
+            categories: categories || [],
+            sizes: uniqueSizes,
+            priceRange: {
+              min: 0,
+              max: 5000,
+            },
+          },
+        });
+      }
+    } catch (dbError) {
+      console.log('Database unavailable, using fallback data');
+    }
+
+    // Fallback to real sneaker data
+    const allSneakers = await sneakerApi.getAllSneakers();
+
+    // Apply search filter
+    let filteredSneakers = allSneakers;
+    if (search) {
+      filteredSneakers = allSneakers.filter(s =>
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.brand.toLowerCase().includes(search.toLowerCase()) ||
+        s.model.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Apply brand filter
+    if (brand) {
+      filteredSneakers = filteredSneakers.filter(s =>
+        s.brand.toLowerCase() === brand.toLowerCase()
+      );
+    }
+
+    // Apply price filters
+    if (minPrice) {
+      filteredSneakers = filteredSneakers.filter(s =>
+        s.marketData.lastSale >= parseFloat(minPrice)
+      );
+    }
+    if (maxPrice) {
+      filteredSneakers = filteredSneakers.filter(s =>
+        s.marketData.lastSale <= parseFloat(maxPrice)
+      );
+    }
+
+    // Apply exclusive/limited filters
+    if (isExclusive) {
+      filteredSneakers = filteredSneakers.filter(s =>
+        s.details.collaboration !== undefined
+      );
+    }
+    if (isLimited) {
+      filteredSneakers = filteredSneakers.filter(s =>
+        s.name.includes('Limited') || s.name.includes('OG') || s.name.includes('Retro')
+      );
+    }
+
+    // Sort
+    switch (sort) {
+      case 'price_asc':
+        filteredSneakers.sort((a, b) => a.marketData.lastSale - b.marketData.lastSale);
+        break;
+      case 'price_desc':
+        filteredSneakers.sort((a, b) => b.marketData.lastSale - a.marketData.lastSale);
+        break;
+      case 'newest':
+        filteredSneakers.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+        break;
+      case 'featured':
+      default:
+        filteredSneakers.sort((a, b) => b.marketData.salesLast72Hours - a.marketData.salesLast72Hours);
+    }
+
+    // Pagination
+    const start = (page - 1) * limit;
+    const paginatedSneakers = filteredSneakers.slice(start, start + limit);
+
+    // Transform to API format
+    const products = paginatedSneakers.map(sneaker => ({
+      id: sneaker.id,
+      name: sneaker.name,
+      slug: sneaker.id,
+      brand: { name: sneaker.brand, slug: sneaker.brand.toLowerCase() },
+      category: { name: 'Sneakers', slug: 'sneakers' },
+      base_price: sneaker.retailPrice,
+      sale_price: sneaker.marketData.lastSale,
+      description: sneaker.description,
+      images: [
+        {
+          url: sneaker.images.main,
+          alt_text: sneaker.name,
+          is_primary: true,
+          sort_order: 0
+        }
+      ],
+      variants: sneaker.sizes.map((size, idx) => ({
+        id: `${sneaker.id}-${idx}`,
+        size: size.us.toString(),
+        stock_quantity: size.stock,
+        price_adjustment: size.priceAdjustment,
+        is_active: size.stock > 0
+      })),
+      is_featured: sneaker.marketData.salesLast72Hours > 100,
+      is_exclusive: sneaker.details.collaboration !== undefined,
+      is_limited: sneaker.name.includes('Limited') || sneaker.name.includes('OG')
+    }));
+
+    // Get unique brands and sizes
+    const uniqueBrands = [...new Set(allSneakers.map(s => s.brand))]
+      .map(b => ({ id: b.toLowerCase(), name: b, slug: b.toLowerCase() }));
+
+    const allSizes = new Set<string>();
+    allSneakers.forEach(s => {
+      s.sizes.forEach(size => allSizes.add(size.us.toString()));
+    });
+    const uniqueSizes = Array.from(allSizes).sort((a, b) => parseFloat(a) - parseFloat(b));
 
     return NextResponse.json({
-      products: filteredProducts,
+      products,
       pagination: {
         page,
         limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limit),
+        total: filteredSneakers.length,
+        totalPages: Math.ceil(filteredSneakers.length / limit),
       },
       filters: {
-        brands: brands || [],
-        categories: categories || [],
+        brands: uniqueBrands,
+        categories: [{ id: 'sneakers', name: 'Sneakers', slug: 'sneakers' }],
         sizes: uniqueSizes,
         priceRange: {
           min: 0,

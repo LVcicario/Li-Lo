@@ -295,6 +295,242 @@ export const REAL_SNEAKERS_DATABASE: RealSneaker[] = [
       collaboration: 'Kanye West / Yeezy',
       designer: 'Kanye West & Steven Smith'
     }
+  },
+  {
+    id: 'new-balance-550-white-green',
+    sku: 'BB550WT1',
+    name: 'New Balance 550 "White Green"',
+    brand: 'New Balance',
+    model: '550',
+    colorway: 'White/Green',
+    retailPrice: 110,
+    releaseDate: '2021-09-24',
+    description: 'The New Balance 550 brings back the late 80s basketball heritage with a clean white leather upper and green accents.',
+    story: 'Originally released in 1989, the 550 was forgotten until Aimé Leon Dore brought it back in 2020. This white and green colorway became an instant classic, combining vintage basketball aesthetics with modern street style appeal.',
+    materials: ['Full-grain leather upper', 'Mesh tongue', 'EVA midsole', 'Rubber outsole'],
+    images: {
+      main: 'https://images.stockx.com/images/New-Balance-550-White-Green-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      side: 'https://images.stockx.com/images/New-Balance-550-White-Green-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      back: 'https://images.stockx.com/images/New-Balance-550-White-Green-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      sole: 'https://images.stockx.com/images/New-Balance-550-White-Green-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      detail: 'https://images.stockx.com/images/New-Balance-550-White-Green-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90'
+    },
+    sizes: [
+      { us: 7, eu: 40, stock: 6, priceAdjustment: 0 },
+      { us: 8, eu: 41, stock: 8, priceAdjustment: 0 },
+      { us: 9, eu: 42.5, stock: 10, priceAdjustment: 0 },
+      { us: 10, eu: 44, stock: 7, priceAdjustment: 0 },
+      { us: 11, eu: 45, stock: 5, priceAdjustment: 10 },
+      { us: 12, eu: 46, stock: 3, priceAdjustment: 15 },
+    ],
+    marketData: {
+      averagePrice: 155,
+      volatility: 4.2,
+      lastSale: 162,
+      changePercent: 1.8,
+      salesLast72Hours: 89,
+      priceHistory: [
+        { date: '2024-01-01', price: 145 },
+        { date: '2024-02-01', price: 150 },
+        { date: '2024-03-01', price: 158 },
+        { date: '2024-04-01', price: 162 },
+      ]
+    },
+    details: {
+      style: 'BB550WT1',
+      colorCode: 'White/Team Forest Green',
+      technology: ['ABZORB cushioning', 'Pigskin leather', 'Stability web'],
+      designer: 'Steven Smith'
+    }
+  },
+  {
+    id: 'off-white-chicago-1',
+    sku: 'AA3834-101',
+    name: 'Air Jordan 1 Retro High Off-White Chicago',
+    brand: 'Jordan',
+    model: 'Air Jordan 1',
+    colorway: 'White/Black-Varsity Red',
+    retailPrice: 190,
+    releaseDate: '2017-09-09',
+    description: 'Virgil Abloh\'s deconstructed take on the iconic Air Jordan 1 Chicago, part of "The Ten" collection.',
+    story: 'Part of Virgil Abloh\'s groundbreaking "The Ten" collaboration with Nike, this deconstructed Air Jordan 1 features exposed foam, off-center tongue, and signature Off-White text. It represents the intersection of high fashion and streetwear.',
+    materials: ['Deconstructed leather', 'Exposed foam padding', 'Zip-tie tag', 'Helvetica text', 'Orange tab'],
+    images: {
+      main: 'https://images.stockx.com/images/Air-Jordan-1-Retro-High-Off-White-Chicago-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      side: 'https://images.stockx.com/images/Air-Jordan-1-Retro-High-Off-White-Chicago-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      back: 'https://images.stockx.com/images/Air-Jordan-1-Retro-High-Off-White-Chicago-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      sole: 'https://images.stockx.com/images/Air-Jordan-1-Retro-High-Off-White-Chicago-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      detail: 'https://images.stockx.com/images/Air-Jordan-1-Retro-High-Off-White-Chicago-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90'
+    },
+    sizes: [
+      { us: 8, eu: 41, stock: 1, priceAdjustment: 0 },
+      { us: 9, eu: 42.5, stock: 1, priceAdjustment: 100 },
+      { us: 10, eu: 44, stock: 2, priceAdjustment: 200 },
+      { us: 11, eu: 45, stock: 1, priceAdjustment: 300 },
+    ],
+    marketData: {
+      averagePrice: 5200,
+      volatility: 12.5,
+      lastSale: 5500,
+      changePercent: 4.2,
+      salesLast72Hours: 8,
+      priceHistory: [
+        { date: '2024-01-01', price: 4800 },
+        { date: '2024-02-01', price: 5000 },
+        { date: '2024-03-01', price: 5300 },
+        { date: '2024-04-01', price: 5500 },
+      ]
+    },
+    details: {
+      style: 'AA3834-101',
+      colorCode: 'White/Black-Varsity Red',
+      technology: ['Air-Sole unit', 'Deconstructed design', 'Off-White branding'],
+      collaboration: 'Off-White / Virgil Abloh',
+      designer: 'Virgil Abloh'
+    }
+  },
+  {
+    id: 'nike-sb-dunk-low-travis-scott',
+    sku: 'CT5053-001',
+    name: 'Nike SB Dunk Low Travis Scott',
+    brand: 'Nike',
+    model: 'SB Dunk Low',
+    colorway: 'Black/Black-Dark Chocolate',
+    retailPrice: 150,
+    releaseDate: '2020-02-29',
+    description: 'Travis Scott\'s take on the SB Dunk Low features a unique patchwork design with playful details.',
+    story: 'Travis Scott brought his signature aesthetic to the SB Dunk with a design featuring bandana and plaid patterns, rope laces, and hidden stash pockets. The special box included matches and a grinder-inspired accessory.',
+    materials: ['Canvas and suede upper', 'Paisley and plaid patterns', 'Rope laces', 'Hidden pocket behind tongue'],
+    images: {
+      main: 'https://images.stockx.com/images/Nike-SB-Dunk-Low-Travis-Scott-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      side: 'https://images.stockx.com/images/Nike-SB-Dunk-Low-Travis-Scott-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      back: 'https://images.stockx.com/images/Nike-SB-Dunk-Low-Travis-Scott-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      sole: 'https://images.stockx.com/images/Nike-SB-Dunk-Low-Travis-Scott-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      detail: 'https://images.stockx.com/images/Nike-SB-Dunk-Low-Travis-Scott-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90'
+    },
+    sizes: [
+      { us: 7, eu: 40, stock: 2, priceAdjustment: 0 },
+      { us: 8, eu: 41, stock: 3, priceAdjustment: 0 },
+      { us: 9, eu: 42.5, stock: 4, priceAdjustment: 50 },
+      { us: 10, eu: 44, stock: 3, priceAdjustment: 100 },
+      { us: 11, eu: 45, stock: 2, priceAdjustment: 150 },
+      { us: 12, eu: 46, stock: 1, priceAdjustment: 200 },
+    ],
+    marketData: {
+      averagePrice: 1850,
+      volatility: 9.2,
+      lastSale: 1920,
+      changePercent: 3.5,
+      salesLast72Hours: 24,
+      priceHistory: [
+        { date: '2024-01-01', price: 1700 },
+        { date: '2024-02-01', price: 1780 },
+        { date: '2024-03-01', price: 1850 },
+        { date: '2024-04-01', price: 1920 },
+      ]
+    },
+    details: {
+      style: 'CT5053-001',
+      colorCode: 'Black/Black-Dark Chocolate',
+      technology: ['Zoom Air cushioning', 'Padded tongue', 'Special packaging'],
+      collaboration: 'Travis Scott / Cactus Jack',
+      designer: 'Travis Scott'
+    }
+  },
+  {
+    id: 'air-jordan-4-black-cat',
+    sku: 'CU1110-010',
+    name: 'Air Jordan 4 Retro "Black Cat"',
+    brand: 'Jordan',
+    model: 'Air Jordan 4',
+    colorway: 'Black/Black-Light Graphite',
+    retailPrice: 190,
+    releaseDate: '2020-01-22',
+    description: 'The Air Jordan 4 "Black Cat" features an all-black colorway inspired by Michael Jordan\'s nickname.',
+    story: 'Named after Michael Jordan\'s "Black Cat" nickname, this monochromatic Air Jordan 4 features premium black nubuck throughout. The stealthy colorway has made it a favorite for both on and off-court wear.',
+    materials: ['Black nubuck upper', 'Visible Air cushioning', 'Graphite accents', 'Rubber outsole'],
+    images: {
+      main: 'https://images.stockx.com/images/Air-Jordan-4-Retro-Black-Cat-2020-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      side: 'https://images.stockx.com/images/Air-Jordan-4-Retro-Black-Cat-2020-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      back: 'https://images.stockx.com/images/Air-Jordan-4-Retro-Black-Cat-2020-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      sole: 'https://images.stockx.com/images/Air-Jordan-4-Retro-Black-Cat-2020-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      detail: 'https://images.stockx.com/images/Air-Jordan-4-Retro-Black-Cat-2020-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90'
+    },
+    sizes: [
+      { us: 7, eu: 40, stock: 4, priceAdjustment: 0 },
+      { us: 8, eu: 41, stock: 5, priceAdjustment: 0 },
+      { us: 9, eu: 42.5, stock: 6, priceAdjustment: 0 },
+      { us: 10, eu: 44, stock: 5, priceAdjustment: 20 },
+      { us: 11, eu: 45, stock: 4, priceAdjustment: 30 },
+      { us: 12, eu: 46, stock: 3, priceAdjustment: 40 },
+    ],
+    marketData: {
+      averagePrice: 520,
+      volatility: 6.5,
+      lastSale: 535,
+      changePercent: 2.8,
+      salesLast72Hours: 56,
+      priceHistory: [
+        { date: '2024-01-01', price: 490 },
+        { date: '2024-02-01', price: 505 },
+        { date: '2024-03-01', price: 520 },
+        { date: '2024-04-01', price: 535 },
+      ]
+    },
+    details: {
+      style: 'CU1110-010',
+      colorCode: 'Black/Black-Light Graphite',
+      technology: ['Air-Sole heel unit', 'Visible Air window', 'Herringbone traction'],
+      designer: 'Tinker Hatfield'
+    }
+  },
+  {
+    id: 'adidas-yeezy-350-v2-zebra',
+    sku: 'CP9654',
+    name: 'Adidas Yeezy Boost 350 V2 "Zebra"',
+    brand: 'Adidas',
+    model: 'Yeezy Boost 350 V2',
+    colorway: 'White/Core Black/Red',
+    retailPrice: 220,
+    releaseDate: '2017-02-25',
+    description: 'The Yeezy 350 V2 "Zebra" features a striking black and white striped Primeknit upper with red "SPLY-350" branding.',
+    story: 'One of the most recognizable Yeezy colorways, the "Zebra" initially released in limited quantities, causing massive demand. Multiple restocks have made it more accessible, but it remains a staple in the Yeezy lineup.',
+    materials: ['Primeknit upper', 'Boost midsole', 'Rubber outsole', 'Rope laces'],
+    images: {
+      main: 'https://images.stockx.com/images/Adidas-Yeezy-Boost-350-V2-Zebra-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      side: 'https://images.stockx.com/images/Adidas-Yeezy-Boost-350-V2-Zebra-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      back: 'https://images.stockx.com/images/Adidas-Yeezy-Boost-350-V2-Zebra-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      sole: 'https://images.stockx.com/images/Adidas-Yeezy-Boost-350-V2-Zebra-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90',
+      detail: 'https://images.stockx.com/images/Adidas-Yeezy-Boost-350-V2-Zebra-Product.jpg?fit=fill&bg=FFFFFF&w=700&h=500&fm=webp&auto=compress&q=90'
+    },
+    sizes: [
+      { us: 7, eu: 40, stock: 3, priceAdjustment: 0 },
+      { us: 8, eu: 41, stock: 4, priceAdjustment: 0 },
+      { us: 9, eu: 42.5, stock: 5, priceAdjustment: 0 },
+      { us: 10, eu: 44, stock: 4, priceAdjustment: 10 },
+      { us: 11, eu: 45, stock: 3, priceAdjustment: 20 },
+      { us: 12, eu: 46, stock: 2, priceAdjustment: 30 },
+    ],
+    marketData: {
+      averagePrice: 285,
+      volatility: 4.8,
+      lastSale: 295,
+      changePercent: 1.5,
+      salesLast72Hours: 112,
+      priceHistory: [
+        { date: '2024-01-01', price: 270 },
+        { date: '2024-02-01', price: 275 },
+        { date: '2024-03-01', price: 285 },
+        { date: '2024-04-01', price: 295 },
+      ]
+    },
+    details: {
+      style: 'CP9654',
+      colorCode: 'White/Core Black/Red',
+      technology: ['Boost cushioning', 'Primeknit construction', 'TPU sidewalls'],
+      collaboration: 'Kanye West / Yeezy',
+      designer: 'Kanye West'
+    }
   }
 ];
 

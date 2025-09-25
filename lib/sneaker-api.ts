@@ -1,4 +1,5 @@
 import { REAL_SNEAKERS_DATABASE, type RealSneaker } from './sneaker-database';
+import { getAllSneakers } from './sneaker-database-extended';
 
 // StockX-style product images using actual product image URLs
 const PRODUCT_IMAGES = {
@@ -38,9 +39,8 @@ export class SneakerApiService {
 
   // Get all sneakers from our database
   async getAllSneakers(): Promise<RealSneaker[]> {
-    // In production, this would fetch from an actual API
-    // For now, return our curated database
-    return REAL_SNEAKERS_DATABASE;
+    // Use the extended database with all sneakers
+    return getAllSneakers();
   }
 
   // Search sneakers by query
