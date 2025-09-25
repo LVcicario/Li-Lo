@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CheckCircle, Package, Mail, ArrowRight, Loader2, AlertCircle, Star, Heart } from 'lucide-react'
-import { formatCurrency } from '@/lib/sneaker-data'
+import { useCurrencyStore } from '@/lib/currency-store'
 import Link from 'next/link'
 import Image from 'next/image'
 import confetti from 'canvas-confetti'
@@ -46,6 +46,7 @@ interface SessionData {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { format: formatPrice } = useCurrencyStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orderData, setOrderData] = useState<OrderData | null>(null)
@@ -215,7 +216,7 @@ function CheckoutSuccessContent() {
 
                 <div className="flex justify-between items-center pb-4 border-b border-gray-700">
                   <span className="text-gray-400 font-mono text-sm">TOTAL AMOUNT</span>
-                  <span className="font-bold text-2xl">{formatCurrency(orderTotal, orderData.currency as 'USD' | 'EUR')}</span>
+                  <span className="font-bold text-2xl">{formatPrice(orderTotal)}</span>
                 </div>
 
                 <div className="flex justify-between items-center pb-4 border-b border-gray-700">
@@ -284,8 +285,8 @@ function CheckoutSuccessContent() {
                     <p className="text-gray-400 text-sm">Quantity: {item.quantity}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-xl">{formatCurrency(item.total_price, orderData.currency as 'USD' | 'EUR')}</p>
-                    <p className="text-gray-400 text-sm">{formatCurrency(item.unit_price, orderData.currency as 'USD' | 'EUR')} each</p>
+                    <p className="font-bold text-xl">{formatPrice(item.total_price)}</p>
+                    <p className="text-gray-400 text-sm">{formatPrice(item.unit_price)} each</p>
                   </div>
                 </motion.div>
               ))}

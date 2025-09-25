@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
         *,
         brand:brands(name, slug),
         category:categories(name, slug),
-        images:product_images(url, alt_text),
-        variants:product_variants(size, stock_quantity)
+        images:product_images(url, alt_text, is_primary, sort_order),
+        variants:product_variants(id, size, stock_quantity, price_adjustment, is_active)
       `)
       .eq('status', 'active');
 
@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (minPrice) {
-      query = query.gte('price', parseFloat(minPrice));
+      query = query.gte('base_price', parseFloat(minPrice));
     }
 
     if (maxPrice) {
-      query = query.lte('price', parseFloat(maxPrice));
+      query = query.lte('base_price', parseFloat(maxPrice));
     }
 
     if (isExclusive) {
@@ -64,17 +64,17 @@ export async function GET(request: NextRequest) {
     // Apply sorting
     switch (sort) {
       case 'price-asc':
-        query = query.order('price', { ascending: true });
+        query = query.order('base_price', { ascending: true });
         break;
       case 'price-desc':
-        query = query.order('price', { ascending: false });
+        query = query.order('base_price', { ascending: false });
         break;
       case 'newest':
         query = query.order('created_at', { ascending: false });
         break;
       case 'featured':
       default:
-        query = query.order('featured', { ascending: false })
+        query = query.order('is_featured', { ascending: false })
                      .order('created_at', { ascending: false });
         break;
     }

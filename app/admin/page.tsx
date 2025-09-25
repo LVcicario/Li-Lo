@@ -208,10 +208,10 @@ export default function AdminDashboard() {
                     {stats.lowStockProducts} products are running low on stock
                   </p>
                   <Link
-                    href="/admin/inventory"
+                    href="/admin/stock"
                     className="text-yellow-600 hover:text-yellow-800 font-medium text-sm mt-1 inline-block"
                   >
-                    View inventory →
+                    Manage stock →
                   </Link>
                 </div>
               </div>

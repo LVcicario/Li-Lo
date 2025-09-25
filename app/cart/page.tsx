@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, X, Plus, Minus, ShoppingBag, Lock, AlertCircle } from 'lucide-react'
 import { useCartStore } from '@/lib/cart-store'
-import { formatCurrency } from '@/lib/sneaker-data'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export default function CartPage() {
   const {
@@ -17,8 +17,8 @@ export default function CartPage() {
     getTotalPrice,
     getTotalItems
   } = useCartStore()
+  const { format: formatPrice } = useCurrencyStore()
 
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [promoCode, setPromoCode] = useState('')
   const [discount, setDiscount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -169,7 +169,7 @@ export default function CartPage() {
                           <Plus className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-xl font-bold">{formatCurrency(item.price * item.quantity, currency)}</p>
+                      <p className="text-xl font-bold">{formatPrice(item.price * item.quantity)}</p>
                     </div>
                   </div>
                 </motion.article>
@@ -195,30 +195,30 @@ export default function CartPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span>Subtotal ({getTotalItems()} items)</span>
-                  <span>{formatCurrency(subtotal, currency)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? 'FREE' : formatCurrency(shipping, currency)}</span>
+                  <span>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>Tax (VAT)</span>
-                  <span>{formatCurrency(tax, currency)}</span>
+                  <span>{formatPrice(tax)}</span>
                 </div>
 
                 {discount > 0 && (
                   <div className="flex justify-between text-green-400">
                     <span>Discount</span>
-                    <span>-{formatCurrency(discount, currency)}</span>
+                    <span>-{formatPrice(discount)}</span>
                   </div>
                 )}
 
                 <div className="border-t border-white/10 pt-3">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span>{formatCurrency(total, currency)}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function CartPage() {
                 <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded">
                   <div className="flex items-center space-x-2 text-blue-400 text-sm">
                     <AlertCircle className="w-4 h-4" />
-                    <span>Add {formatCurrency(500 - subtotal, currency)} more for free shipping</span>
+                    <span>Add {formatPrice(500 - subtotal)} more for free shipping</span>
                   </div>
                 </div>
               )}

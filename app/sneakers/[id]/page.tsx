@@ -6,22 +6,23 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ShoppingBag, Heart, Share2, Star, Shield, Truck, RefreshCw, Package, AlertCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getProduct, formatCurrency, type ProductData } from '@/lib/product-data'
+import { getProduct, type ProductData } from '@/lib/product-data'
 import { useParams } from 'next/navigation'
 import { useCartStore } from '@/lib/cart-store'
+import { useCurrencyStore } from '@/lib/currency-store'
+import { WishlistButton } from '@/components/WishlistButton'
 import { toast } from 'sonner'
 
 export default function SneakerDetailPage() {
   const params = useParams()
   const { addItem } = useCartStore()
+  const { format: formatPrice } = useCurrencyStore()
   const [product, setProduct] = useState<ProductData | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<any>(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [isWishlisted, setIsWishlisted] = useState(false)
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const [addingToCart, setAddingToCart] = useState(false)
 
   // Load product data
@@ -140,12 +141,12 @@ export default function SneakerDetailPage() {
                 fill
                 className="object-cover"
               />
-              <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className="absolute top-4 right-4 p-3 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-colors"
-              >
-                <Heart className={cn("w-5 h-5", isWishlisted && "fill-red-500 text-red-500")} />
-              </button>
+              <WishlistButton
+                productId={product.id}
+                productName={product.name}
+                className="absolute top-4 right-4"
+                size="md"
+              />
 
               {/* Stock indicator */}
               {!product.in_stock && (
@@ -212,12 +213,12 @@ export default function SneakerDetailPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <p className="text-3xl font-bold">{formatCurrency(product.base_price, currency)}</p>
+                <p className="text-3xl font-bold">{formatPrice(product.base_price)}</p>
                 {product.resale_value && product.resale_value > product.base_price && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">Resale Value:</span>
                     <span className="text-lg font-semibold text-green-500">
-                      {formatCurrency(product.resale_value, currency)}
+                      {formatPrice(product.resale_value)}
                     </span>
                   </div>
                 )}

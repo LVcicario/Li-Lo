@@ -23,15 +23,22 @@ export default function CookieConsent() {
     marketing: false,
     preferences: false,
   });
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
+
     const consent = localStorage.getItem('cookieConsent');
     if (!consent) {
       setTimeout(() => {
         setShowBanner(true);
       }, 1000);
     }
-  }, []);
+  }, [isClient]);
 
   const handleAcceptAll = () => {
     const allAccepted = {

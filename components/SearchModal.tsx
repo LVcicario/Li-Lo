@@ -27,10 +27,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [isClient, setIsClient] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Popular searches
   const popularSearches = ['Jordan', 'Yeezy', 'Travis Scott', 'Off-White', 'Dunk', 'Air Force']
+
+  // Client-side hydration check
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Focus input when modal opens
   useEffect(() => {
@@ -43,11 +49,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   // Load recent searches from localStorage
   useEffect(() => {
+    if (!isClient) return
+
     const saved = localStorage.getItem('recentSearches')
     if (saved) {
       setRecentSearches(JSON.parse(saved))
     }
-  }, [])
+  }, [isClient])
 
   // Perform search
   useEffect(() => {
@@ -91,7 +99,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     // Add to recent searches
     const updated = [searchQuery, ...recentSearches.filter(s => s !== searchQuery)].slice(0, 5)
     setRecentSearches(updated)
-    localStorage.setItem('recentSearches', JSON.stringify(updated))
+
+    if (isClient) {
+      localStorage.setItem('recentSearches', JSON.stringify(updated))
+    }
 
     // Navigate to search results
     window.location.href = `/sneakers?q=${encodeURIComponent(searchQuery)}`
@@ -99,7 +110,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   const clearRecentSearches = () => {
     setRecentSearches([])
-    localStorage.removeItem('recentSearches')
+
+    if (isClient) {
+      localStorage.removeItem('recentSearches')
+    }
   }
 
   return (

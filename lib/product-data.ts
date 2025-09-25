@@ -196,7 +196,8 @@ export async function getProducts(
 export async function getProduct(idOrSlug: string): Promise<ProductData | null> {
   const supabase = createClient()
 
-  let query = supabase
+  // First try by slug (most common case)
+  const { data: productBySlug, error: slugError } = await supabase
     .from('products')
     .select(`
       *,
@@ -209,16 +210,52 @@ export async function getProduct(idOrSlug: string): Promise<ProductData | null> 
       )
     `)
     .eq('status', 'active')
+    .eq('slug', idOrSlug)
+    .single()
 
-  // Try to find by ID first, then by slug
-  const { data: productById } = await query.eq('id', idOrSlug).single()
-  if (productById) {
-    return transformSingleProduct(productById)
+  if (productBySlug && !slugError) {
+    // Add fallback image if no images exist
+    if (!productBySlug.images || productBySlug.images.length === 0) {
+      productBySlug.images = [{
+        id: 'fallback',
+        url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
+        alt_text: productBySlug.name || 'Product Image',
+        is_primary: true,
+        sort_order: 0
+      }]
+    }
+    return transformSingleProduct(productBySlug)
   }
 
-  const { data: productBySlug } = await query.eq('slug', idOrSlug).single()
-  if (productBySlug) {
-    return transformSingleProduct(productBySlug)
+  // Then try by ID
+  const { data: productById, error: idError } = await supabase
+    .from('products')
+    .select(`
+      *,
+      brand:brands(id, name, slug),
+      category:categories(id, name, slug),
+      images:product_images(id, url, alt_text, is_primary, sort_order),
+      variants:product_variants(
+        id, sku, size, size_type, stock_quantity,
+        reserved_quantity, price_adjustment, is_active
+      )
+    `)
+    .eq('status', 'active')
+    .eq('id', idOrSlug)
+    .single()
+
+  if (productById && !idError) {
+    // Add fallback image if no images exist
+    if (!productById.images || productById.images.length === 0) {
+      productById.images = [{
+        id: 'fallback',
+        url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
+        alt_text: productById.name || 'Product Image',
+        is_primary: true,
+        sort_order: 0
+      }]
+    }
+    return transformSingleProduct(productById)
   }
 
   return null
@@ -323,20 +360,73 @@ function transformSingleProduct(product: any): ProductData {
     ?.filter((variant: any) => variant.is_active && variant.stock_quantity > 0)
     ?.map((variant: any) => variant.size) || []
 
-  const sortedImages = product.images
+  let sortedImages = product.images
     ?.sort((a: any, b: any) => {
       if (a.is_primary && !b.is_primary) return -1
       if (!a.is_primary && b.is_primary) return 1
       return a.sort_order - b.sort_order
     }) || []
 
+  // Add fallback image if no images exist
+  if (sortedImages.length === 0) {
+    sortedImages = [{
+      id: 'fallback',
+      url: getProductImage(product.slug || product.name),
+      alt_text: product.name || 'Product Image',
+      is_primary: true,
+      sort_order: 0
+    }]
+  }
+
+  // Ensure all required fields have defaults
   return {
     ...product,
+    brand: product.brand || { id: '', name: 'Unknown', slug: 'unknown' },
+    category: product.category || { id: '', name: 'Sneakers', slug: 'sneakers' },
+    description: product.description || `Premium ${product.name || 'sneaker'} in excellent condition.`,
+    story: product.story || '',
+    tags: product.tags || [],
     total_stock: totalStock,
     in_stock: totalStock > 0,
     available_sizes: availableSizes,
-    images: sortedImages
+    images: sortedImages,
+    rarity_score: product.rarity_score || 5,
+    base_price: product.base_price || 150,
+    variants: product.variants || []
   }
+}
+
+// Helper function to get appropriate product image based on slug/name
+function getProductImage(identifier: string): string {
+  const id = (identifier || '').toLowerCase()
+
+  if (id.includes('jordan') && id.includes('1')) {
+    return 'https://images.unsplash.com/photo-1603787081207-362bcef7c144?w=800'
+  }
+  if (id.includes('jordan') && id.includes('4')) {
+    return 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800'
+  }
+  if (id.includes('jordan') && id.includes('11')) {
+    return 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800'
+  }
+  if (id.includes('yeezy')) {
+    return 'https://images.unsplash.com/photo-1505784045224-1247b2b29cf3?w=800'
+  }
+  if (id.includes('dunk')) {
+    return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800'
+  }
+  if (id.includes('air-force') || id.includes('af1')) {
+    return 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800'
+  }
+  if (id.includes('travis')) {
+    return 'https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=800'
+  }
+  if (id.includes('off-white')) {
+    return 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800'
+  }
+
+  // Default sneaker image
+  return 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=800'
 }
 
 // Format currency function

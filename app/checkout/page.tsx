@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { useCartStore } from '@/lib/cart-store'
 import { createClient } from '@/lib/supabase/client'
-import { formatCurrency } from '@/lib/sneaker-data'
+import { useCurrencyStore } from '@/lib/currency-store'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -30,7 +30,7 @@ export default function CheckoutPage() {
   const { items, getTotalPrice, loadCart, isLoading: cartLoading } = useCartStore()
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [currency] = useState<'USD' | 'EUR'>('USD')
+  const { currency, format: formatPrice } = useCurrencyStore()
   const [discountCode, setDiscountCode] = useState('')
   const [discountAmount, setDiscountAmount] = useState(0)
   const [applyingDiscount, setApplyingDiscount] = useState(false)
@@ -104,7 +104,7 @@ export default function CheckoutPage() {
       const data = await response.json()
       if (response.ok) {
         setDiscountAmount(data.discount_amount)
-        toast.success(`Discount applied: ${formatCurrency(data.discount_amount, currency)} off!`)
+        toast.success(`Discount applied: ${formatPrice(data.discount_amount)} off!`)
       } else {
         toast.error(data.error || 'Invalid discount code')
       }
@@ -495,7 +495,7 @@ export default function CheckoutPage() {
                       <h3 className="font-bold text-sm truncate">{item.name}</h3>
                       <p className="text-xs text-gray-400 font-mono">{item.brand}</p>
                       <p className="text-xs text-gray-400">Size {item.size} • Qty {item.quantity}</p>
-                      <p className="font-bold text-sm mt-1">{formatCurrency(item.price * item.quantity, currency)}</p>
+                      <p className="font-bold text-sm mt-1">{formatPrice(item.price * item.quantity)}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -532,29 +532,29 @@ export default function CheckoutPage() {
               <div className="space-y-3 border-t border-gray-700 pt-6">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400 font-mono">SUBTOTAL</span>
-                  <span className="font-mono">{formatCurrency(subtotal, currency)}</span>
+                  <span className="font-mono">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400 font-mono">SHIPPING</span>
                   <span className="font-mono">
-                    {shipping === 0 ? 'FREE' : formatCurrency(shipping, currency)}
+                    {shipping === 0 ? 'FREE' : formatPrice(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400 font-mono">
                     TAX ({formData.country === 'US' ? '8%' : '20% VAT'})
                   </span>
-                  <span className="font-mono">{formatCurrency(tax, currency)}</span>
+                  <span className="font-mono">{formatPrice(tax)}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-sm text-green-400">
                     <span className="font-mono">DISCOUNT</span>
-                    <span className="font-mono">-{formatCurrency(discountAmount, currency)}</span>
+                    <span className="font-mono">-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-xl border-t border-gray-700 pt-3">
                   <span className="font-mono tracking-wider">TOTAL</span>
-                  <span className="font-mono">{formatCurrency(total, currency)}</span>
+                  <span className="font-mono">{formatPrice(total)}</span>
                 </div>
               </div>
 

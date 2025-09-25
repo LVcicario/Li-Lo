@@ -1,24 +1,47 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Star, TrendingUp } from 'lucide-react'
-import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { useProducts, formatDatabaseProduct } from '@/hooks/useProducts'
 import { useLanguageStore } from '@/lib/i18n'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export function FeaturedCollection() {
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
   const { t } = useLanguageStore()
+  const { format: formatPrice } = useCurrencyStore()
 
-  // Select 4 featured sneakers from our collection
-  const featuredSneakers = [
-    iconicSneakers[0], // Jordan Dynasty Collection
-    iconicSneakers[1], // Last Dance Jordan
-    iconicSneakers[3], // Dior x Jordan
-    iconicSneakers[5], // Travis Scott Fragment
-  ]
+  // Fetch featured products from database
+  const { products: dbProducts, loading } = useProducts({
+    limit: 4,
+    sort: 'featured'
+  })
+
+  // Convert database products to legacy format for compatibility
+  const featuredSneakers = dbProducts.map(formatDatabaseProduct)
+
+  if (loading) {
+    return (
+      <section className="py-20 lg:py-32 bg-black">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
+              {t('pages.home.featuredDrops')}
+            </h2>
+            <p className="font-mono text-sm text-gray-400 tracking-wider">
+              {t('common.loading')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-gray-800 rounded-lg h-96" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-20 lg:py-32 bg-black">
@@ -88,7 +111,7 @@ export function FeaturedCollection() {
                   </h3>
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-2xl font-bold">{formatCurrency(sneaker.price, currency)}</span>
+                      <span className="text-2xl font-bold">{formatPrice(sneaker.price)}</span>
                       {sneaker.valueTrend.percentage > 0 && (
                         <div className="flex items-center gap-1 text-xs text-green-500 mt-1">
                           <TrendingUp className="w-3 h-3" />
