@@ -231,7 +231,8 @@ export async function POST(request: NextRequest) {
             .from('order_items')
             .select(`
               quantity,
-              price,
+              unit_price,
+              total_price,
               size,
               product_variants!inner(
                 products!inner(name)
@@ -250,7 +251,7 @@ export async function POST(request: NextRequest) {
                 name: item.product_variants.products.name,
                 size: item.size,
                 quantity: item.quantity,
-                price: item.price,
+                price: item.unit_price,
               })),
               total: (order as any).total_amount,
               shippingAddress: (order as any).shipping_address,

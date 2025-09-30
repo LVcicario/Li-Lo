@@ -16,7 +16,11 @@
       "Bash(timeout:*)",
       "Bash(git rm:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "WebSearch",
+      "mcp__supabase__get_anon_key",
+      "mcp__supabase__get_project",
+      "mcp__supabase__get_logs"
     ]
   },
   "enableAllProjectMcpServers": true,

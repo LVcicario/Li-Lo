@@ -9,12 +9,18 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '12');
   const sort = searchParams.get('sort') || 'featured';
+  const sortBy = searchParams.get('sort_by') || '';
+  const sortOrder = searchParams.get('sort_order') || 'asc';
   const category = searchParams.get('category');
+  const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
   const brand = searchParams.get('brand');
-  const minPrice = searchParams.get('minPrice');
-  const maxPrice = searchParams.get('maxPrice');
+  const brands = searchParams.get('brands')?.split(',').filter(Boolean) || [];
+  const types = searchParams.get('types')?.split(',').filter(Boolean) || [];
+  const minPrice = searchParams.get('minPrice') || searchParams.get('min_price');
+  const maxPrice = searchParams.get('maxPrice') || searchParams.get('max_price');
   const size = searchParams.get('size');
-  const search = searchParams.get('search');
+  const search = searchParams.get('search') || searchParams.get('q');
+  const inStockOnly = searchParams.get('in_stock') === 'true';
   const isExclusive = searchParams.get('exclusive') === 'true';
   const isLimited = searchParams.get('limited') === 'true';
 
@@ -39,7 +45,7 @@ export async function GET(request: NextRequest) {
         // Get products with images separately to avoid complex joins
         let query = supabase
           .from('products')
-          .select('*, product_images(*)')
+          .select('*, product_images(*), brands!inner(name, slug), categories!inner(name, slug)')
           .eq('status', 'active');
 
     // Apply filters
@@ -47,8 +53,20 @@ export async function GET(request: NextRequest) {
       query = query.eq('category_id', category);
     }
 
+    if (categories.length > 0) {
+      query = query.in('categories.slug', categories);
+    }
+
     if (brand) {
       query = query.eq('brand_id', brand);
+    }
+
+    if (brands.length > 0) {
+      query = query.in('brands.slug', brands);
+    }
+
+    if (types.length > 0) {
+      query = query.in('category_type', types);
     }
 
     if (minPrice) {
@@ -57,6 +75,10 @@ export async function GET(request: NextRequest) {
 
     if (maxPrice) {
       query = query.lte('base_price', parseFloat(maxPrice));
+    }
+
+    if (inStockOnly) {
+      query = query.eq('in_stock', true);
     }
 
     if (isExclusive) {
@@ -68,25 +90,29 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,story.ilike.%${search}%`);
     }
 
     // Apply sorting
-    switch (sort) {
-      case 'price-asc':
-        query = query.order('base_price', { ascending: true });
-        break;
-      case 'price-desc':
-        query = query.order('base_price', { ascending: false });
-        break;
-      case 'newest':
-        query = query.order('created_at', { ascending: false });
-        break;
-      case 'featured':
-      default:
-        query = query.order('is_featured', { ascending: false })
-                     .order('created_at', { ascending: false });
-        break;
+    if (sortBy && sortOrder) {
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+    } else {
+      switch (sort) {
+        case 'price-asc':
+          query = query.order('base_price', { ascending: true });
+          break;
+        case 'price-desc':
+          query = query.order('base_price', { ascending: false });
+          break;
+        case 'newest':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'featured':
+        default:
+          query = query.order('is_featured', { ascending: false })
+                       .order('created_at', { ascending: false });
+          break;
+      }
     }
 
     // Apply pagination
@@ -104,8 +130,8 @@ export async function GET(request: NextRequest) {
     // Transform products to include proper structure
     const transformedProducts = products?.map((product: any) => ({
       ...product,
-      brand: { name: product.brand_id || 'Nike', slug: product.brand_id || 'nike' },
-      category: { name: 'Sneakers', slug: 'sneakers' },
+      brand: product.brands || { name: product.brand_id || 'Nike', slug: product.brand_id || 'nike' },
+      category: product.categories || { name: 'Sneakers', slug: 'sneakers' },
       images: product.product_images || [{
         url: product.original_image_url || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
         alt_text: product.name,

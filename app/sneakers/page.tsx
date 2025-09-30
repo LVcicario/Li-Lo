@@ -58,12 +58,27 @@ function SneakersContent() {
   // Apply filters and sorting when they change
   useEffect(() => {
     const applyFilters = async () => {
-      if (loading) return
-
       setLoading(true)
       try {
+        // Build query parameters from filters
+        const params = new URLSearchParams()
+        params.append('limit', '100')
+
+        if (searchQuery) params.append('q', searchQuery)
+        if (filters.brands.length > 0) params.append('brands', filters.brands.join(','))
+        if (filters.categories.length > 0) params.append('categories', filters.categories.join(','))
+        if (filters.category_types.length > 0) params.append('types', filters.category_types.join(','))
+        if (filters.priceRange[0] > 0) params.append('min_price', filters.priceRange[0].toString())
+        if (filters.priceRange[1] < 100000) params.append('max_price', filters.priceRange[1].toString())
+        if (filters.in_stock_only) params.append('in_stock', 'true')
+
+        // Add sorting
+        const sortConfig = getSortConfig(sortBy)
+        params.append('sort_by', sortConfig.field)
+        params.append('sort_order', sortConfig.direction)
+
         // FETCH DIRECTLY FROM API
-        const response = await fetch('/api/products?limit=100')
+        const response = await fetch(`/api/products?${params.toString()}`)
         const data = await response.json()
         setProducts(data.products || [])
       } catch (error) {
@@ -74,7 +89,7 @@ function SneakersContent() {
     }
 
     applyFilters()
-  }, [filters, sortBy])
+  }, [filters, sortBy, searchQuery])
 
   const getSortConfig = (sortBy: string): ProductSort => {
     switch (sortBy) {
