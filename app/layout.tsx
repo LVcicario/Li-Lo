@@ -5,6 +5,7 @@ import { Footer } from '@/components/Footer'
 import { ClientProviders } from '@/components/ClientProviders'
 import CookieConsent from '@/components/CookieConsent'
 import CartSlideOver from '@/components/CartSlideOver'
+import { GoogleAnalytics } from '@/lib/analytics/google-analytics'
 
 export const metadata: Metadata = {
   title: 'Li-Lo | Rare & Ultra Premium Sneakers',
@@ -19,6 +20,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <GoogleAnalytics />
+      </head>
       <body className="min-h-screen bg-black text-white antialiased" suppressHydrationWarning>
         <ClientProviders />
         <Navbar />

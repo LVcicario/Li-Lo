@@ -67,6 +67,21 @@ interface CEODashboardStats {
   grossMargin: number
   sellerPerformance: SellerMetric[]
   regionalSales: RegionalSales[]
+  // E-commerce specific KPIs
+  membershipRevenue: number
+  membershipBreakdown: {
+    bronze: number
+    silver: number
+    gold: number
+  }
+  dropsPerformance: {
+    scheduled: number
+    live: number
+    completed: number
+    totalRevenue: number
+    averageDropRevenue: number
+  }
+  topDrops: TopDrop[]
 }
 
 interface TopProduct {
@@ -105,6 +120,16 @@ interface RegionalSales {
   orders: number
 }
 
+interface TopDrop {
+  id: string
+  name: string
+  drop_date: string
+  status: string
+  totalRevenue: number
+  totalSold: number
+  productsCount: number
+}
+
 export default function CEODashboard() {
   const router = useRouter()
   const { user, isCEO, checkUser } = useAuthStore()
@@ -137,7 +162,17 @@ export default function CEODashboard() {
     profitMargin: 0,
     grossMargin: 0,
     sellerPerformance: [],
-    regionalSales: []
+    regionalSales: [],
+    membershipRevenue: 0,
+    membershipBreakdown: { bronze: 0, silver: 0, gold: 0 },
+    dropsPerformance: {
+      scheduled: 0,
+      live: 0,
+      completed: 0,
+      totalRevenue: 0,
+      averageDropRevenue: 0
+    },
+    topDrops: []
   })
 
   useEffect(() => {
@@ -160,8 +195,46 @@ export default function CEODashboard() {
     try {
       setRefreshing(true)
 
-      // Check if using mock data
-      if (isUsingMockData) {
+      // Fetch REAL data from Supabase
+      const res = await fetch('/api/ceo/metrics')
+      const data = await res.json()
+
+      if (data.success && data.metrics) {
+        const m = data.metrics
+        setStats({
+          totalRevenue: m.totalRevenue,
+          monthlyRevenue: m.monthlyRevenue,
+          quarterlyRevenue: m.monthlyRevenue * 3,
+          yearlyRevenue: m.totalRevenue,
+          totalOrders: m.totalOrders,
+          monthlyOrders: m.monthlyOrders,
+          totalCustomers: m.totalCustomers,
+          newCustomers: m.newCustomers,
+          activeCustomers: m.activeCustomers,
+          totalProducts: m.totalProducts,
+          lowStockProducts: m.lowStockProducts,
+          averageOrderValue: m.averageOrderValue,
+          conversionRate: m.conversionRate,
+          cartAbandonmentRate: 0, // TODO
+          customerRetentionRate: 0, // TODO
+          topSellingProducts: [],
+          recentOrders: m.recentOrders,
+          revenueGrowth: 0, // TODO
+          orderGrowth: 0, // TODO
+          customerGrowth: 0, // TODO
+          profitMargin: 0, // TODO
+          grossMargin: 0, // TODO
+          sellerPerformance: [],
+          regionalSales: [],
+          membershipRevenue: m.membershipRevenue,
+          membershipBreakdown: m.membershipBreakdown,
+          dropsPerformance: m.dropsPerformance,
+          topDrops: m.topDrops
+        })
+      }
+
+      // Fallback to mock data if API fails
+      if (!data.success && isUsingMockData) {
         const mockMetrics = await getCEOMetrics()
         const mockRevenue = await getRevenueTimeSeries(30)
         const mockOrders = await getRecentOrders(10)
@@ -208,6 +281,24 @@ export default function CEODashboard() {
               { region: 'Europe', sales: 142000, growth: 22.1, orders: 590 },
               { region: 'Asia', sales: 98000, growth: 45.2, orders: 420 },
               { region: 'Other', sales: 45000, growth: 15.3, orders: 190 }
+            ],
+            membershipRevenue: mockMetrics.revenue.monthly * 0.15, // 15% from memberships
+            membershipBreakdown: {
+              bronze: Math.floor(mockMetrics.customers.total * 0.60),
+              silver: Math.floor(mockMetrics.customers.total * 0.25),
+              gold: Math.floor(mockMetrics.customers.total * 0.15)
+            },
+            dropsPerformance: {
+              scheduled: 5,
+              live: 2,
+              completed: 18,
+              totalRevenue: mockMetrics.revenue.monthly * 0.35,
+              averageDropRevenue: (mockMetrics.revenue.monthly * 0.35) / 18
+            },
+            topDrops: [
+              { id: '1', name: 'Jordan 4 Retro "Thunder"', drop_date: '2025-01-15', status: 'completed', totalRevenue: 45600, totalSold: 152, productsCount: 1 },
+              { id: '2', name: 'Yeezy 350 V2 "Onyx"', drop_date: '2025-01-22', status: 'completed', totalRevenue: 38200, totalSold: 127, productsCount: 1 },
+              { id: '3', name: 'Nike Dunk Low "Panda"', drop_date: '2025-01-28', status: 'live', totalRevenue: 31500, totalSold: 105, productsCount: 1 }
             ]
           })
           setRevenueData(mockRevenue)
@@ -267,6 +358,24 @@ export default function CEODashboard() {
           { region: 'Europe', sales: 98000, growth: 18.7, orders: 412 },
           { region: 'Asia', sales: 76000, growth: 42.1, orders: 358 },
           { region: 'Other', sales: 32000, growth: 12.5, orders: 145 }
+        ],
+        membershipRevenue: 58500,
+        membershipBreakdown: {
+          bronze: Math.floor(8421 * 0.60),
+          silver: Math.floor(8421 * 0.25),
+          gold: Math.floor(8421 * 0.15)
+        },
+        dropsPerformance: {
+          scheduled: 5,
+          live: 2,
+          completed: 18,
+          totalRevenue: 134750,
+          averageDropRevenue: 7486
+        },
+        topDrops: [
+          { id: '1', name: 'Jordan 4 Retro "Thunder"', drop_date: '2025-01-15', status: 'completed', totalRevenue: 45600, totalSold: 152, productsCount: 1 },
+          { id: '2', name: 'Yeezy 350 V2 "Onyx"', drop_date: '2025-01-22', status: 'completed', totalRevenue: 38200, totalSold: 127, productsCount: 1 },
+          { id: '3', name: 'Nike Dunk Low "Panda"', drop_date: '2025-01-28', status: 'live', totalRevenue: 31500, totalSold: 105, productsCount: 1 }
         ]
       }
 
@@ -480,6 +589,121 @@ export default function CEODashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* E-Commerce KPIs Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-purple-600" />
+                Membership Revenue
+              </CardTitle>
+              <CardDescription>Recurring subscription income</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600 mb-4">
+                {formatCurrency(stats.membershipRevenue)}
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                    Gold
+                  </span>
+                  <span className="font-semibold">{stats.membershipBreakdown.gold.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                    Silver
+                  </span>
+                  <span className="font-semibold">{stats.membershipBreakdown.silver.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600 flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-orange-700"></div>
+                    Bronze
+                  </span>
+                  <span className="font-semibold">{stats.membershipBreakdown.bronze.toLocaleString()}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-blue-600" />
+                Drops Performance
+              </CardTitle>
+              <CardDescription>Exclusive drop analytics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600 mb-4">
+                {formatCurrency(stats.dropsPerformance.totalRevenue)}
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Scheduled</span>
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                    {stats.dropsPerformance.scheduled}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Live</span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    {stats.dropsPerformance.live}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Completed</span>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    {stats.dropsPerformance.completed}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center text-sm pt-2 border-t">
+                  <span className="text-gray-600">Avg/Drop</span>
+                  <span className="font-semibold">{formatCurrency(stats.dropsPerformance.averageDropRevenue)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Top Drops
+              </CardTitle>
+              <CardDescription>Best performing releases</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {stats.topDrops.slice(0, 3).map((drop, idx) => (
+                  <div key={drop.id} className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{drop.name}</p>
+                      <p className="text-xs text-gray-500">{drop.totalSold} sold</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-green-600">{formatCurrency(drop.totalRevenue)}</p>
+                      <Badge
+                        variant="outline"
+                        className={
+                          drop.status === 'live'
+                            ? 'text-green-700 bg-green-50 border-green-200 text-[10px]'
+                            : 'text-gray-600 bg-gray-50 border-gray-200 text-[10px]'
+                        }
+                      >
+                        {drop.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Tabs for detailed views */}
         <Tabs defaultValue="performance" className="space-y-6">

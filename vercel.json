@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/drops/notify-subscribers",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
