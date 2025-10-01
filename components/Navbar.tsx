@@ -22,8 +22,10 @@ export function Navbar() {
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     useCartStore.persist.rehydrate()
     initializeLanguage()
   }, [])
@@ -89,7 +91,7 @@ export function Navbar() {
                   className="flex items-center space-x-1 px-3 py-2 hover:bg-white/10 rounded-full transition-colors text-sm font-mono"
                 >
                   <Globe className="w-4 h-4" />
-                  <span>{currentLanguage.toUpperCase()}</span>
+                  <span suppressHydrationWarning>{mounted ? currentLanguage.toUpperCase() : 'FR'}</span>
                 </button>
                 <AnimatePresence>
                   {showLangMenu && (
@@ -137,7 +139,7 @@ export function Navbar() {
                   className="flex items-center space-x-1 px-3 py-2 hover:bg-white/10 rounded-full transition-colors text-sm font-mono"
                 >
                   <DollarSign className="w-4 h-4" />
-                  <span>{currency}</span>
+                  <span suppressHydrationWarning>{mounted ? currency : 'EUR'}</span>
                 </button>
                 <AnimatePresence>
                   {showCurrencyMenu && (
