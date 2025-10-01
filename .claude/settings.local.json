@@ -20,7 +20,17 @@
       "WebSearch",
       "mcp__supabase__get_anon_key",
       "mcp__supabase__get_project",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "Bash(curl:*)",
+      "Bash(for page in \"/\" \"/auth/login\" \"/auth/register\" \"/sneakers\" \"/cart\" \"/seller\" \"/client\")",
+      "Bash(do echo -n \"$page: \")",
+      "Bash(done)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(touch:*)",
+      "Bash(do)",
+      "Bash(echo:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

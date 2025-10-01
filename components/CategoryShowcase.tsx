@@ -5,33 +5,115 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight } from 'lucide-react'
 import { useLanguageStore } from '@/lib/i18n'
+import { useState, useEffect } from 'react'
+import { getAllProducts, Product } from '@/lib/products-service'
 
 export function CategoryShowcase() {
   const { t } = useLanguageStore()
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const categories = [
-    {
-      name: "EXCLUSIVE",
-      description: "BEYOND LIMITS",
-      image: "https://images.unsplash.com/photo-1612902456551-333ac5afa26e?w=1200&h=1200&fit=crop&q=100",
-      href: "/exclusive",
-      count: "6 GRAILS"
-    },
-    {
-      name: "LIMITED EDITION",
-      description: "HANDPICKED EXCELLENCE",
-      image: "https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=1200&h=1200&fit=crop&q=100",
-      href: "/limited-edition",
-      count: "9 ITEMS"
-    },
-    {
-      name: "ICONIC COLLECTION",
-      description: "LEGENDARY ITEMS",
-      image: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=1200&h=1200&fit=crop&q=100",
-      href: "/sneakers",
-      count: "16 LEGENDS"
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const products = await getAllProducts()
+
+        // Compter les produits par catégorie
+        const categoryData: { [key: string]: { count: number, image: string } } = {
+          'grail': { count: 0, image: '' },
+          'exclusive': { count: 0, image: '' },
+          'limited': { count: 0, image: '' }
+        }
+
+        products.forEach((product: Product) => {
+          if (product.category === 'grail' || product.category === 'exclusive' || product.category === 'limited') {
+            categoryData[product.category].count++
+            // Prendre la première image de chaque catégorie
+            if (!categoryData[product.category].image && product.images[0]) {
+              categoryData[product.category].image = product.images[0]
+            }
+          }
+        })
+
+        const categoriesArray = [
+          {
+            name: t('categories.grail'),
+            description: t('categories.grailDescription'),
+            image: categoryData['grail'].image || '/placeholder-sneaker.jpg',
+            href: "/sneakers?category=grail",
+            count: `${categoryData['grail'].count} ${t('categories.items')}`
+          },
+          {
+            name: t('categories.exclusive'),
+            description: t('categories.exclusiveDescription'),
+            image: categoryData['exclusive'].image || '/placeholder-sneaker.jpg',
+            href: "/sneakers?category=exclusive",
+            count: `${categoryData['exclusive'].count} ${t('categories.items')}`
+          },
+          {
+            name: t('categories.limited'),
+            description: t('categories.limitedDescription'),
+            image: categoryData['limited'].image || '/placeholder-sneaker.jpg',
+            href: "/sneakers",
+            count: `${products.length} ${t('categories.totalItems')}`
+          }
+        ]
+
+        setCategories(categoriesArray)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error loading categories:', error)
+        // Fallback sur des catégories par défaut
+        setCategories([
+          {
+            name: "EXCLUSIVE",
+            description: "BEYOND LIMITS",
+            image: "/placeholder-sneaker.jpg",
+            href: "/sneakers",
+            count: "0 ITEMS"
+          },
+          {
+            name: "LIMITED EDITION",
+            description: "HANDPICKED EXCELLENCE",
+            image: "/placeholder-sneaker.jpg",
+            href: "/sneakers",
+            count: "0 ITEMS"
+          },
+          {
+            name: "ICONIC COLLECTION",
+            description: "LEGENDARY ITEMS",
+            image: "/placeholder-sneaker.jpg",
+            href: "/sneakers",
+            count: "0 LEGENDS"
+          }
+        ])
+        setLoading(false)
+      }
     }
-  ]
+    loadCategories()
+  }, [t])
+
+  if (loading) {
+    return (
+      <section className="py-20 lg:py-32 bg-gradient-to-b from-black via-gray-950 to-black">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
+              {t('collections.title')}
+            </h2>
+            <p className="font-mono text-sm text-gray-400 tracking-wider">
+              Loading...
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-gray-800 rounded-lg h-96" />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="py-20 lg:py-32 bg-gradient-to-b from-black via-gray-950 to-black">
@@ -43,15 +125,15 @@ export function CategoryShowcase() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            COLLECTIONS
+            {t('collections.title')}
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            CURATED FOR THE ELITE
+            {t('collections.subtitle')}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {categories.map((category, index) => (
+          {categories.map((category: any, index: number) => (
             <motion.div
               key={category.name}
               initial={{ opacity: 0, y: 50 }}

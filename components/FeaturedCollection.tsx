@@ -4,21 +4,29 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Star, TrendingUp } from 'lucide-react'
-import { useProducts, formatDatabaseProduct } from '@/hooks/useProducts'
 import { useLanguageStore } from '@/lib/i18n'
 import { useCurrencyStore } from '@/lib/currency-store'
+import { useState, useEffect } from 'react'
+import { getFeaturedProducts, Product } from '@/lib/products-service'
 
 export function FeaturedCollection() {
-  // Translation disabled - using hardcoded English text
-  // const { t } = useLanguageStore()
+  // Activer la traduction
+  const { t } = useLanguageStore()
   const { format: formatPrice } = useCurrencyStore()
 
-  // Import the real sneaker data
-  const { iconicSneakers } = require('@/lib/sneaker-data')
+  // Utiliser les VRAIES données de la base de données
+  const [featuredSneakers, setFeaturedSneakers] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Use first 4 iconic sneakers from our updated database
-  const featuredSneakers = iconicSneakers.slice(0, 4)
-  const loading = false
+  useEffect(() => {
+    async function loadFeaturedProducts() {
+      setLoading(true)
+      const products = await getFeaturedProducts(4)
+      setFeaturedSneakers(products)
+      setLoading(false)
+    }
+    loadFeaturedProducts()
+  }, [])
 
   if (loading) {
     return (
@@ -52,10 +60,10 @@ export function FeaturedCollection() {
           className="text-center mb-16"
         >
           <h2 className="text-5xl lg:text-7xl font-bold tracking-tighter mb-4">
-            FEATURED DROPS
+            {t('pages.home.featuredDrops')}
           </h2>
           <p className="font-mono text-sm text-gray-400 tracking-wider">
-            HANDPICKED EXCELLENCE
+            {t('pages.home.handpickedExcellence')}
           </p>
         </motion.div>
 
@@ -87,12 +95,16 @@ export function FeaturedCollection() {
                   )}
                   <div className="aspect-square relative bg-gradient-to-br from-gray-100 to-white">
                     <Image
-                      src={sneaker.images[0]}
+                      src={sneaker.images[0] || '/placeholder-sneaker.jpg'}
                       alt={sneaker.name}
                       fill
                       className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"
                       quality={95}
                       priority={index < 2}
+                      onError={(e) => {
+                        const img = e.target as HTMLImageElement
+                        img.src = '/placeholder-sneaker.jpg'
+                      }}
                     />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -130,7 +142,7 @@ export function FeaturedCollection() {
                 whileTap={{ scale: 0.95 }}
                 className="w-full mt-2 py-3 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors flex items-center justify-center group"
               >
-                ADD TO CART
+                {t('product.addToCart')}
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </motion.div>
@@ -147,7 +159,7 @@ export function FeaturedCollection() {
             href="/collections"
             className="inline-flex items-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white hover:text-black transition-all duration-300"
           >
-            VIEW ALL COLLECTIONS
+            {t('filters.viewAll')}
             <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </motion.div>

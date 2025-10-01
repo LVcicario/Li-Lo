@@ -15,7 +15,7 @@ export const useCurrencyStore = create<CurrencyState>()(
   persist(
     (set, get) => ({
       currency: 'EUR', // Default to EUR for European market
-      exchangeRate: 1.08, // 1 EUR = 1.08 USD approximately
+      exchangeRate: 1.10, // 1 EUR = 1.10 USD exactly as required
 
       setCurrency: (currency: Currency) => {
         set({ currency });

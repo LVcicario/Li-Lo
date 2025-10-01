@@ -9,6 +9,7 @@ import { useCartStore } from '@/lib/cart-store'
 import { useAuthStore } from '@/lib/auth-store'
 import { SearchModal } from '@/components/SearchModal'
 import { useLanguageStore } from '@/lib/i18n'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -17,7 +18,7 @@ export function Navbar() {
   const { user, userRole } = useAuthStore()
   const isSeller = userRole === 'seller' || userRole === 'ceo'
   const { currentLanguage, setLanguage, t, initializeLanguage } = useLanguageStore()
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const { currency, setCurrency } = useCurrencyStore()
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false)
   const [showSearch, setShowSearch] = useState(false)

@@ -5,32 +5,38 @@ import Link from 'next/link'
 import { ArrowRight, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useLanguageStore } from '@/lib/i18n'
+import { getFeaturedProducts, Product } from '@/lib/products-service'
 
 export function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [products, setProducts] = useState<Product[]>([])
   const { t } = useLanguageStore()
 
-  const slides = [
+  // Charger les vraies données de la DB
+  useEffect(() => {
+    async function loadProducts() {
+      const featuredProducts = await getFeaturedProducts(3)
+      setProducts(featuredProducts)
+    }
+    loadProducts()
+  }, [])
+
+  // Utiliser les vraies données produits ou fallback sur les données par défaut
+  const slides = products.length > 0 ? products.map((product) => ({
+    title: product.name.split(' ').slice(0, 2).join(' ').toUpperCase(),
+    subtitle: product.category.toUpperCase(),
+    description: product.name.toUpperCase(),
+    image: product.images[0] || '/placeholder-sneaker.jpg',
+    cta: t('hero.shopNow'),
+    productId: product.id
+  })) : [
     {
-      title: "ULTRA RARE",
-      subtitle: "COLLECTION 2025",
-      description: "THE MOST EXCLUSIVE SNEAKERS IN EXISTENCE",
-      image: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1920&h=1080&fit=crop&q=100",
-      cta: "EXPLORE RARE"
-    },
-    {
-      title: "PREMIUM LEGACY",
-      subtitle: "LIMITED EDITION",
-      description: "WHERE ART MEETS FOOTWEAR",
-      image: "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1920&h=1080&fit=crop&q=100",
-      cta: "SHOP PREMIUM"
-    },
-    {
-      title: "COLLECTOR'S VAULT",
-      subtitle: "EXCLUSIVE ACCESS",
-      description: "FOR TRUE CONNOISSEURS",
-      image: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=1920&h=1080&fit=crop&q=100",
-      cta: "GET ACCESS"
+      title: t('pages.home.heroTitle'),
+      subtitle: t('pages.home.heroSubtitle'),
+      description: t('pages.home.heroDescription'),
+      image: '/placeholder-sneaker.jpg',
+      cta: t('hero.shopNow'),
+      productId: null
     }
   ]
 
@@ -113,14 +119,14 @@ export function Hero() {
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <Link
-                href="/collections"
+                href={slides[currentSlide].productId ? `/sneakers/${slides[currentSlide].productId}` : "/collections"}
                 className="group inline-flex items-center justify-center px-8 py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-all duration-300"
               >
                 {slides[currentSlide].cta}
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform" />
               </Link>
               <Link
-                href="/about"
+                href="/sneakers"
                 className="inline-flex items-center justify-center px-8 py-4 border border-white/30 font-mono text-sm tracking-wider hover:bg-white/10 transition-all duration-300"
               >
                 LEARN MORE
