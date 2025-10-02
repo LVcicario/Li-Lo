@@ -22,12 +22,12 @@ export function ParallaxBanner() {
         className="absolute inset-0 -top-20 -bottom-20"
       >
         <Image
-          src="https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1920&h=1080&fit=crop&q=100"
+          src="https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=1920&h=1080&fit=crop&q=90"
           alt="Premium Sneaker Collection"
           fill
           className="object-cover"
           priority
-          quality={100}
+          quality={90}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
       </motion.div>

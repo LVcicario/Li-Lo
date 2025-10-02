@@ -7,11 +7,11 @@
 
 import Script from 'next/script';
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export function GoogleAnalytics() {
-  if (!GA_ID) {
-    console.warn('Google Analytics ID not configured');
+  // Disable in development or if not configured
+  if (!GA_ID || GA_ID === 'G-DEMO123456' || process.env.NODE_ENV === 'development') {
     return null;
   }
 

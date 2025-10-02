@@ -45,7 +45,9 @@
       "Bash(xargs:*)",
       "Bash(while read file)",
       "Bash(do echo \"=== $file ===\")",
-      "Bash(for page in \"/\" \"/sneakers\" \"/exclusive\" \"/limited-edition\" \"/collections\" \"/cart\" \"/auth/login\" \"/auth/register\" \"/checkout\" \"/membership\" \"/about\")"
+      "Bash(for page in \"/\" \"/sneakers\" \"/exclusive\" \"/limited-edition\" \"/collections\" \"/cart\" \"/auth/login\" \"/auth/register\" \"/checkout\" \"/membership\" \"/about\")",
+      "Bash(if exist node_modules.cache rmdir /s /q node_modules.cache)",
+      "Bash(cmd /c:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
