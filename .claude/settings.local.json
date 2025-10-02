@@ -30,7 +30,12 @@
       "Bash(findstr:*)",
       "Bash(touch:*)",
       "Bash(do)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(python:*)",
+      "mcp__supabase__get_organization",
+      "mcp__supabase__get_advisors",
+      "Bash(PORT=3000 node scripts/validate-site.mjs)"
     ]
   },
   "enableAllProjectMcpServers": true,

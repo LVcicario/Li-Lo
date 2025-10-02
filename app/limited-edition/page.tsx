@@ -5,12 +5,15 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Shield, Diamond, Fingerprint, Award, Clock, Globe, TrendingUp } from 'lucide-react'
-import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { getAllProducts } from '@/lib/products-service'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export default function LimitedEditionPage() {
   const [isVaultOpen, setIsVaultOpen] = useState(false)
   const [selectedTier, setSelectedTier] = useState('platinum')
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const [vaultItems, setVaultItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { format: formatPrice } = useCurrencyStore()
   const { scrollY } = useScroll()
   const vaultRotate = useTransform(scrollY, [0, 500], [0, 360])
 
@@ -35,19 +38,25 @@ export default function LimitedEditionPage() {
     }
   }
 
-  // Select limited edition items from our collection and categorize by tier
-  const vaultItems = iconicSneakers.slice(0, 9).map((sneaker, index) => {
-    let tier = 'platinum'
-    if (sneaker.price > 100000) tier = 'obsidian'
-    else if (sneaker.price > 10000) tier = 'diamond'
-
-    return {
-      ...sneaker,
-      tier
-    }
-  })
-
+  // Load limited edition items from database and categorize by tier
   useEffect(() => {
+    async function loadProducts() {
+      const products = await getAllProducts()
+      const limited = products
+        .filter(p => p.category === 'limited' || p.category === 'rare' || p.category === 'exclusive')
+        .sort((a, b) => b.price - a.price)
+        .slice(0, 9)
+        .map(sneaker => {
+          let tier = 'platinum'
+          if (sneaker.price > 3000) tier = 'obsidian'
+          else if (sneaker.price > 1500) tier = 'diamond'
+
+          return { ...sneaker, tier }
+        })
+      setVaultItems(limited)
+      setLoading(false)
+    }
+    loadProducts()
     const timer = setTimeout(() => setIsVaultOpen(true), 1500)
     return () => clearTimeout(timer)
   }, [])
@@ -167,7 +176,7 @@ export default function LimitedEditionPage() {
                 <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${tier.color} rounded-full`} />
                 <h3 className="font-bold text-xl mb-2">{tier.name}</h3>
                 <p className="font-mono text-sm text-gray-400 mb-4">
-                  FROM {formatCurrency(tier.minPrice, currency)}
+                  FROM {formatPrice(tier.minPrice)}
                 </p>
                 <ul className="space-y-1">
                   {tier.benefits.map((benefit, i) => (
@@ -206,7 +215,7 @@ export default function LimitedEditionPage() {
                     className="relative w-full h-full"
                   >
                     <Image
-                      src={item.images[0]}
+                      src={item.images?.[0] || '/placeholder-sneaker.jpg'}
                       alt={item.name}
                       fill
                       className="object-cover"
@@ -214,9 +223,9 @@ export default function LimitedEditionPage() {
                   </motion.div>
 
                   <div className="absolute top-4 left-4 flex items-center space-x-2">
-                    {item.rarity.produced < 100 && (
+                    {item.stock && item.stock < 10 && (
                       <span className="px-3 py-1 bg-black/80 backdrop-blur-sm text-white text-xs font-mono">
-                        1/{item.rarity.produced}
+                        {item.stock} LEFT
                       </span>
                     )}
                     {item.category === 'grail' && (
@@ -252,10 +261,8 @@ export default function LimitedEditionPage() {
                 <div className="p-6 border border-white/10 border-t-0">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-mono text-gray-500">{item.brand}</span>
-                    {item.authenticity.certificate && (
-                      <Shield className="w-3 h-3 text-green-500" />
-                    )}
-                    {item.valueTrend.percentage > 0 && (
+                    <Shield className="w-3 h-3 text-green-500" />
+                    {item.valueTrend?.percentage > 0 && (
                       <div className="flex items-center gap-1 text-green-500">
                         <TrendingUp className="w-3 h-3" />
                         <span className="text-xs">+{item.valueTrend.percentage}%</span>
@@ -263,14 +270,14 @@ export default function LimitedEditionPage() {
                     )}
                   </div>
                   <h3 className="text-xl font-bold tracking-tighter mb-2">{item.name}</h3>
-                  <p className="text-xs text-gray-400 mb-1">{item.edition}</p>
-                  <p className="text-xs text-gray-500 mb-4 line-clamp-2">{item.story}</p>
+                  <p className="text-xs text-gray-400 mb-1">{item.category?.toUpperCase() || 'LIMITED EDITION'}</p>
+                  <p className="text-xs text-gray-500 mb-4 line-clamp-2">{item.story || item.description}</p>
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-2xl font-bold block">{formatCurrency(item.price, currency)}</span>
+                      <span className="text-2xl font-bold block">{formatPrice(item.price)}</span>
                       {item.resaleValue > item.price && (
                         <span className="text-xs text-gray-500">
-                          Resale: {formatCurrency(item.resaleValue, currency)}
+                          Resale: {formatPrice(item.resaleValue)}
                         </span>
                       )}
                     </div>
@@ -303,13 +310,17 @@ export default function LimitedEditionPage() {
             Join the most exclusive sneaker community in the world.
             Access pieces that money alone cannot buy.
           </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors"
+          <Link
+            href="/membership"
           >
-            APPLY FOR MEMBERSHIP
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-8 py-4 bg-white text-black font-mono text-sm tracking-wider hover:bg-gray-200 transition-colors"
+            >
+              APPLY FOR MEMBERSHIP
+            </motion.button>
+          </Link>
         </motion.div>
       </div>
     </div>

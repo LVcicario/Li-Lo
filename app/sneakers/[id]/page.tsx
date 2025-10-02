@@ -8,7 +8,7 @@ import { ArrowLeft, ShoppingBag, Heart, Share2, Star, Shield, Truck, RefreshCw, 
 import { cn } from '@/lib/utils'
 import { getProduct, type ProductData } from '@/lib/product-data'
 import { useParams } from 'next/navigation'
-import { useCartStore } from '@/lib/cart-store'
+import { useCartStore } from '@/lib/cart-store-simple'
 import { useCurrencyStore } from '@/lib/currency-store'
 import { WishlistButton } from '@/components/WishlistButton'
 import { toast } from 'sonner'
@@ -83,29 +83,26 @@ export default function SneakerDetailPage() {
   }
 
   const handleAddToCart = async () => {
-    if (!selectedSize || !selectedVariant) {
+    if (!selectedSize) {
       toast.error('Please select a size')
       return
     }
 
-    if (selectedVariant.stock_quantity < quantity) {
-      toast.error(`Only ${selectedVariant.stock_quantity} items available in this size`)
+    if (!product) {
+      toast.error('Product not found')
       return
     }
 
     setAddingToCart(true)
     try {
-      await addItem({
+      addItem({
         product_id: product.id,
-        variant_id: selectedVariant.id,
         name: product.name,
-        brand: product.brand.name,
+        brand: product.brand?.name || 'Nike',
         price: product.base_price,
         size: selectedSize,
         quantity: quantity,
-        image: product.images[0]?.url || '',
-        sku: selectedVariant.sku,
-        max_quantity: selectedVariant.stock_quantity
+        image: product.images?.[0]?.url || ''
       })
 
       toast.success(`Added ${product.name} (Size ${selectedSize}) to cart`)

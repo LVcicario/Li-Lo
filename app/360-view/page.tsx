@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Eye, Rotate3d, Star, Zap } from 'lucide-react'
 import Product360Viewer from '@/components/Product360Viewer'
 import { getProductsWith360Support, getProductImages } from '@/lib/product-360'
-import { formatCurrency } from '@/lib/sneaker-data'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 interface Product360 {
   id: string
@@ -24,6 +24,7 @@ export default function View360Page() {
   const [selectedProduct, setSelectedProduct] = useState<Product360 | null>(null)
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const { format: formatPrice } = useCurrencyStore()
 
   useEffect(() => {
     async function loadProducts() {
@@ -150,7 +151,7 @@ export default function View360Page() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-bold">
-                        {formatCurrency(product.base_price, 'USD')}
+                        {formatPrice(product.base_price)}
                       </span>
 
                       <div className="flex items-center gap-1">
@@ -197,7 +198,7 @@ export default function View360Page() {
                       </h2>
                       <div className="flex items-center gap-4 mt-2">
                         <span className="text-3xl font-bold">
-                          {formatCurrency(selectedProduct.base_price, 'USD')}
+                          {formatPrice(selectedProduct.base_price)}
                         </span>
                         <div className="flex items-center gap-1">
                           <Rotate3d className="w-4 h-4 text-blue-400" />

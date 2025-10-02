@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, X, Plus, Minus, ShoppingBag, Lock, AlertCircle } from 'lucide-react'
-import { useCartStore } from '@/lib/cart-store'
+import { useCartStore } from '@/lib/cart-store-simple'
 import { useCurrencyStore } from '@/lib/currency-store'
 
 export default function CartPage() {

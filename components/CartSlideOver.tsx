@@ -3,8 +3,8 @@
 import { Fragment, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Minus, Plus, ShoppingBag, Trash2, Loader2, AlertCircle } from 'lucide-react'
-import { useCartStore } from '@/lib/cart-store'
-import { formatCurrency } from '@/lib/sneaker-data'
+import { useCartStore } from '@/lib/cart-store-simple'
+import { useCurrencyStore } from '@/lib/currency-store'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -22,7 +22,7 @@ export default function CartSlideOver() {
   } = useCartStore()
 
   const [loadingItems, setLoadingItems] = useState<Set<string>>(new Set())
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const { format: formatPrice } = useCurrencyStore()
 
   // Load cart on mount
   useEffect(() => {
@@ -157,7 +157,7 @@ export default function CartSlideOver() {
                             <h3 className="font-bold text-sm truncate">{item.name}</h3>
                             <p className="text-xs text-gray-400 font-mono tracking-wider">{item.brand}</p>
                             <p className="text-xs text-gray-400 mt-1">Size: {item.size}</p>
-                            <p className="font-bold mt-2">{formatCurrency(item.price, currency)}</p>
+                            <p className="font-bold mt-2">{formatPrice(item.price)}</p>
 
                             {isLowStock && (
                               <div className="flex items-center gap-1 mt-1">
@@ -209,7 +209,7 @@ export default function CartSlideOver() {
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400 font-mono">SUBTOTAL</span>
-                      <span className="font-mono">{formatCurrency(getTotalPrice(), currency)}</span>
+                      <span className="font-mono">{formatPrice(getTotalPrice())}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400 font-mono">SHIPPING</span>
@@ -217,7 +217,7 @@ export default function CartSlideOver() {
                     </div>
                     <div className="border-t border-gray-800 pt-2 flex justify-between">
                       <span className="font-bold font-mono tracking-wider">TOTAL</span>
-                      <span className="font-bold text-xl font-mono">{formatCurrency(getTotalPrice(), currency)}</span>
+                      <span className="font-bold text-xl font-mono">{formatPrice(getTotalPrice())}</span>
                     </div>
                   </div>
 

@@ -52,12 +52,14 @@ export default function MembershipPage() {
       const response = await fetch('/api/membership/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, billing_period: billingPeriod }),
+        body: JSON.stringify({ tier, period: billingPeriod }),
       });
 
       const data = await response.json();
-      if (data.success && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Checkout error:', data.error);
       }
     } catch (error) {
       console.error('Error creating checkout:', error);

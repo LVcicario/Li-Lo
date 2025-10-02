@@ -1,0 +1,35 @@
+{
+  "date": "2025-10-02T09:59:58.637Z",
+  "url": "http://localhost:3002",
+  "score": 100,
+  "results": {
+    "pages": {
+      "successCount": 16,
+      "errorCount": 0,
+      "total": 16
+    },
+    "api": {
+      "valid": true,
+      "productCount": 5
+    },
+    "prices": {
+      "valid": true,
+      "count": 36,
+      "minPrice": 110,
+      "maxPrice": 8500,
+      "avgPrice": 947.5
+    },
+    "images": {
+      "valid": true,
+      "total": 36,
+      "stockx": 36,
+      "unsplash": 0,
+      "placeholder": 0
+    },
+    "dynamicPages": {
+      "valid": true,
+      "tested": 3,
+      "successful": 3
+    }
+  }
+}

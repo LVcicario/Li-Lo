@@ -1,138 +1,89 @@
-// =============================================
-// MEMBERSHIP CHECKOUT API ROUTE
-// POST /api/membership/checkout - Create Stripe checkout session
-// =============================================
-
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
+  apiVersion: '2024-06-20',
 });
 
-export async function POST(request: NextRequest) {
+const MEMBERSHIP_PRICES = {
+  bronze: {
+    monthly: 19.99,
+    yearly: 199.99,
+    name: 'Bronze Membership',
+    benefits: ['Early Access', 'Member Pricing', 'Newsletter']
+  },
+  silver: {
+    monthly: 49.99,
+    yearly: 499.99,
+    name: 'Silver Membership',
+    benefits: ['All Bronze Benefits', 'Exclusive Drops', 'Priority Support', 'Free Shipping']
+  },
+  gold: {
+    monthly: 99.99,
+    yearly: 999.99,
+    name: 'Gold Membership',
+    benefits: ['All Silver Benefits', 'VIP Events', 'Personal Shopper', 'First Access to Grails']
+  }
+};
+
+export async function POST(req: Request) {
   try {
-    const supabase = await createClient();
+    const { tier, period } = await req.json();
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    if (!tier || !period) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Missing tier or period' },
+        { status: 400 }
       );
     }
 
-    const body = await request.json();
-    const { tier, billing_period = 'monthly' } = body;
-
-    // Validate tier
-    if (!['bronze', 'silver', 'gold'].includes(tier)) {
+    const membership = MEMBERSHIP_PRICES[tier as keyof typeof MEMBERSHIP_PRICES];
+    if (!membership) {
       return NextResponse.json(
         { error: 'Invalid membership tier' },
         { status: 400 }
       );
     }
 
-    // Get tier configuration
-    const { data: tierConfig, error: tierError } = await supabase
-      .from('membership_tiers')
-      .select('*')
-      .eq('tier', tier)
-      .single();
+    const amount = period === 'yearly' ? membership.yearly : membership.monthly;
 
-    if (tierError || !tierConfig) {
-      return NextResponse.json(
-        { error: 'Membership tier not found' },
-        { status: 404 }
-      );
-    }
-
-    // Bronze is free
-    if (tier === 'bronze') {
-      return NextResponse.json(
-        { error: 'Bronze membership is free' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate price
-    const price = billing_period === 'yearly'
-      ? tierConfig.price_yearly
-      : tierConfig.price_monthly;
-
-    // Get user profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', user.id)
-      .single();
-
-    // Create or retrieve Stripe customer
-    let customerId: string;
-
-    const { data: existingMembership } = await supabase
-      .from('user_memberships')
-      .select('stripe_customer_id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (existingMembership?.stripe_customer_id) {
-      customerId = existingMembership.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: profile?.email || user.email!,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      });
-      customerId = customer.id;
-    }
-
-    // Create checkout session
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'subscription',
       payment_method_types: ['card'],
+      mode: 'subscription',
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: 'eur',
             product_data: {
-              name: `${tierConfig.name} Membership`,
-              description: tierConfig.description,
-              images: [
-                // Add tier badge image if available
-              ],
+              name: membership.name,
+              description: membership.benefits.join(' • '),
+              images: ['https://images.unsplash.com/photo-1556906781-9a412961c28c?w=500'],
             },
-            unit_amount: Math.round(price * 100), // Convert to cents
             recurring: {
-              interval: billing_period === 'yearly' ? 'year' : 'month',
+              interval: period === 'yearly' ? 'year' : 'month',
             },
+            unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/membership/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/membership`,
       metadata: {
-        user_id: user.id,
-        tier: tier,
-        billing_period: billing_period,
+        tier,
+        period
       },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/?membership=success&tier=${tier}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/membership`,
     });
 
     return NextResponse.json({
       success: true,
-      checkoutUrl: session.url,
-      sessionId: session.id,
+      url: session.url
     });
-  } catch (error) {
-    console.error('Membership checkout error:', error);
+  } catch (error: any) {
+    console.error('Stripe checkout error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
+      { error: error.message || 'Failed to create checkout session' },
       { status: 500 }
     );
   }

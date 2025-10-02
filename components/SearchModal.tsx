@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Search, X, ArrowRight, TrendingUp } from 'lucide-react'
-import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 interface SearchResult {
   id: string
@@ -67,27 +67,29 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
     setIsSearching(true)
 
-    // Simulate API delay
-    const timeoutId = setTimeout(() => {
-      const searchResults = iconicSneakers
-        .filter(sneaker =>
-          sneaker.name.toLowerCase().includes(query.toLowerCase()) ||
-          sneaker.brand.toLowerCase().includes(query.toLowerCase()) ||
-          sneaker.category.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 6)
-        .map(sneaker => ({
-          id: sneaker.id.toString(),
-          name: sneaker.name,
-          brand: sneaker.brand,
-          price: sneaker.price,
-          image: sneaker.images[0],
-          category: sneaker.category,
-          href: `/sneakers/${sneaker.id}`
+    // Search from API
+    const timeoutId = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/products?q=${encodeURIComponent(query)}&limit=6`)
+        const data = await response.json()
+
+        const searchResults = (data.products || []).map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          brand: product.brand?.name || 'Unknown',
+          price: product.base_price,
+          image: product.images?.[0]?.url || '/placeholder-sneaker.jpg',
+          category: product.category_type || 'sneaker',
+          href: `/sneakers/${product.id}`
         }))
 
-      setResults(searchResults)
-      setIsSearching(false)
+        setResults(searchResults)
+      } catch (error) {
+        console.error('Search error:', error)
+        setResults([])
+      } finally {
+        setIsSearching(false)
+      }
     }, 300)
 
     return () => clearTimeout(timeoutId)
@@ -257,7 +259,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                   {result.name}
                                 </h4>
                                 <p className="text-sm text-gray-400">{result.brand}</p>
-                                <p className="text-sm font-mono">{formatCurrency(result.price, 'USD')}</p>
+                                <p className="text-sm font-mono">€{result.price.toLocaleString()}</p>
                               </div>
                               <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-white transition-colors" />
                             </Link>

@@ -1,28 +1,47 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Lock, Crown, Star, Eye, ChevronRight, Sparkles, Shield, TrendingUp } from 'lucide-react'
-import { iconicSneakers, formatCurrency } from '@/lib/sneaker-data'
+import { getAllProducts } from '@/lib/products-service'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export default function ExclusivePage() {
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [hoveredItem, setHoveredItem] = useState<string | null>(null)
   const [password, setPassword] = useState('')
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD')
+  const [exclusiveSneakers, setExclusiveSneakers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { format: formatPrice } = useCurrencyStore()
 
-  // Filter exclusive and grail sneakers from our collection
-  const exclusiveSneakers = iconicSneakers.filter(s =>
-    s.category === 'exclusive' || s.category === 'grail'
-  ).slice(0, 6)
+  // Load exclusive and grail sneakers from database
+  useEffect(() => {
+    async function loadProducts() {
+      const products = await getAllProducts()
+      const filtered = products
+        .filter(p => p.category === 'exclusive' || p.category === 'grail')
+        .slice(0, 6)
+      setExclusiveSneakers(filtered)
+      setLoading(false)
+    }
+    loadProducts()
+  }, [])
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault()
     if (password.toLowerCase() === 'elite') {
       setIsUnlocked(true)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
+      </div>
+    )
   }
 
   return (
@@ -173,7 +192,7 @@ export default function ExclusivePage() {
                   className="relative w-full h-full"
                 >
                   <Image
-                    src={sneaker.images[0]}
+                    src={sneaker.images?.[0] || '/placeholder-sneaker.jpg'}
                     alt={sneaker.name}
                     fill
                     className={`object-cover ${!isUnlocked && index > 2 ? 'blur-xl' : ''}`}
@@ -190,13 +209,13 @@ export default function ExclusivePage() {
                       GRAIL
                     </motion.div>
                   )}
-                  {sneaker.rarity.produced < 100 && (
+                  {sneaker.stock && sneaker.stock < 10 && (
                     <motion.div
                       animate={{ opacity: [0.5, 1, 0.5] }}
                       transition={{ duration: 2, repeat: Infinity }}
                       className="px-3 py-1 bg-red-500 text-white text-xs font-mono font-bold mt-2"
                     >
-                      1 OF {sneaker.rarity.produced}
+                      {sneaker.stock} LEFT
                     </motion.div>
                   )}
                 </div>
@@ -229,10 +248,8 @@ export default function ExclusivePage() {
 
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xs font-mono text-gray-500">{sneaker.brand}</span>
-                  {sneaker.authenticity.certificate && (
-                    <Shield className="w-3 h-3 text-green-500" />
-                  )}
-                  {sneaker.valueTrend.percentage > 0 && (
+                  <Shield className="w-3 h-3 text-green-500" />
+                  {sneaker.valueTrend?.percentage > 0 && (
                     <div className="flex items-center gap-1 text-green-500">
                       <TrendingUp className="w-3 h-3" />
                       <span className="text-xs">+{sneaker.valueTrend.percentage}%</span>
@@ -243,19 +260,19 @@ export default function ExclusivePage() {
                   {!isUnlocked && index > 2 ? 'CLASSIFIED' : sneaker.name}
                 </h3>
                 <p className="text-sm text-gray-400 mb-3">
-                  {!isUnlocked && index > 2 ? '••••••••' : sneaker.edition}
+                  {!isUnlocked && index > 2 ? '••••••••' : sneaker.category?.toUpperCase() || 'EXCLUSIVE'}
                 </p>
                 <p className="text-xs text-gray-500 mb-4 line-clamp-2">
-                  {!isUnlocked && index > 2 ? 'AUTHENTICATION REQUIRED' : sneaker.story}
+                  {!isUnlocked && index > 2 ? 'AUTHENTICATION REQUIRED' : (sneaker.story || sneaker.description)}
                 </p>
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-2xl font-bold block">
-                      {!isUnlocked && index > 2 ? '•••••' : formatCurrency(sneaker.price, currency)}
+                      {!isUnlocked && index > 2 ? '•••••' : formatPrice(sneaker.price)}
                     </span>
                     {sneaker.resaleValue > sneaker.price && (
                       <span className="text-xs text-gray-500">
-                        Resale: {formatCurrency(sneaker.resaleValue, currency)}
+                        Resale: {formatPrice(sneaker.resaleValue)}
                       </span>
                     )}
                   </div>
