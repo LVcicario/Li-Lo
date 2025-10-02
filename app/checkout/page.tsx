@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { CreditCard, Lock, Package, Truck, Mail, MapPin } from 'lucide-react'
-import { useCartStore } from '@/lib/cart-store-simple'
+import { CreditCard, Lock, Package, Truck, Mail, MapPin, AlertCircle } from 'lucide-react'
+import { useCartStore } from '@/lib/cart-store'
 import { useCurrencyStore } from '@/lib/currency-store'
+import { useAuthStore } from '@/lib/auth-store'
+import { createClient } from '@/lib/supabase/client'
+import { reserveStock, releaseStock } from '@/lib/stock-service'
 import { toast } from 'sonner'
 import Image from 'next/image'
 
@@ -24,7 +27,9 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCartStore()
   const { format: formatPrice } = useCurrencyStore()
+  const { user } = useAuthStore()
   const [loading, setLoading] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     firstName: '',
     lastName: '',
@@ -46,6 +51,35 @@ export default function CheckoutPage() {
       router.push('/cart')
     }
   }, [items.length, router])
+
+  useEffect(() => {
+    // Check authentication and load user info
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        setIsAuthenticated(true)
+        // Pre-fill form with user info
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email, phone, address')
+          .eq('id', user.id)
+          .single()
+
+        if (profile) {
+          setShippingInfo(prev => ({
+            ...prev,
+            firstName: profile.first_name || '',
+            lastName: profile.last_name || '',
+            email: profile.email || user.email || '',
+            phone: profile.phone || ''
+          }))
+        }
+      }
+    }
+    checkAuth()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -76,14 +110,77 @@ export default function CheckoutPage() {
   const handleCheckout = async () => {
     if (!validateForm()) return
 
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error('Please login to complete your purchase')
+      router.push('/auth/login?redirect=/checkout')
+      return
+    }
+
     setLoading(true)
     try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        throw new Error('Please login to continue')
+      }
+
+      // Reserve stock for each item
+      const stockReservations: Array<{ variantId: string, quantity: number }> = []
+      for (const item of items) {
+        const success = await reserveStock(item.variant_id, item.quantity)
+        if (!success) {
+          throw new Error(`${item.name} (Size ${item.size}) is no longer available in the requested quantity`)
+        }
+        stockReservations.push({ variantId: item.variant_id, quantity: item.quantity })
+      }
+
+      // Create order in database
+      const orderNumber = `LI-LO-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          order_number: orderNumber,
+          status: 'pending',
+          items: items.map(item => ({
+            product_id: item.product_id,
+            variant_id: item.variant_id,
+            name: item.name,
+            size: item.size,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          subtotal,
+          shipping,
+          tax,
+          total_amount: total,
+          shipping_address: shippingInfo,
+          payment_method: 'stripe',
+          payment_status: 'pending'
+        })
+        .select()
+        .single()
+
+      if (orderError) {
+        // Release reserved stock if order creation fails
+        for (const reservation of stockReservations) {
+          await releaseStock(reservation.variantId, reservation.quantity)
+        }
+        throw orderError
+      }
+
+      // Call Stripe checkout API
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          orderId: order.id,
           items: items.map(item => ({
             id: item.product_id,
+            variant_id: item.variant_id,
             name: item.name,
             price: item.price,
             quantity: item.quantity,
@@ -101,10 +198,16 @@ export default function CheckoutPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        // Release reserved stock if payment fails
+        for (const reservation of stockReservations) {
+          await releaseStock(reservation.variantId, reservation.quantity)
+        }
         throw new Error(data.error || 'Checkout failed')
       }
 
       if (data.url) {
+        // Clear cart after successful checkout initiation
+        clearCart()
         window.location.href = data.url
       } else {
         throw new Error('No checkout URL received')
@@ -128,6 +231,26 @@ export default function CheckoutPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-4xl font-bold mb-8 text-white">CHECKOUT</h1>
+
+          {!isAuthenticated && (
+            <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-yellow-400 font-medium">Login required</p>
+                <p className="text-yellow-400/80 text-sm">
+                  Please{' '}
+                  <a href="/auth/login?redirect=/checkout" className="underline hover:text-yellow-300">
+                    login
+                  </a>{' '}
+                  or{' '}
+                  <a href="/auth/register?redirect=/checkout" className="underline hover:text-yellow-300">
+                    create an account
+                  </a>{' '}
+                  to complete your purchase.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Shipping Form */}

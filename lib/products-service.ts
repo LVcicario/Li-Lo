@@ -120,25 +120,45 @@ export async function getAllProducts(): Promise<Product[]> {
       return []
     }
 
-    return products?.map(p => ({
-      id: p.id,
-      name: p.name,
-      brand: 'Nike', // Simplification temporaire
-      category: (p.category_type || 'exclusive') as 'grail' | 'exclusive' | 'limited' | 'rare',
-      price: p.base_price,
-      resaleValue: p.resale_value || p.base_price * 1.2,
-      description: p.description || '',
-      story: p.story || '',
-      images: p.primary_image_url ? [p.primary_image_url] : [],
-      featured: p.is_featured || false,
-      stock: p.in_stock ? 10 : 0,
-      rarity: {
-        rating: p.rarity_score || 8
-      },
-      valueTrend: {
-        percentage: p.value_trend_percentage || 15
+    // First sort products by price to ensure correct categorization
+    const sortedProducts = products?.sort((a, b) => b.base_price - a.base_price) || []
+
+    // Assign categories based on price ranking
+    return sortedProducts.map((p, index) => {
+      // Assign category based on price ranking (now correctly sorted by price desc)
+      let category: 'grail' | 'exclusive' | 'limited' | 'rare' = 'rare'
+
+      // Based on actual price values for better categorization
+      if (p.base_price >= 8000) {
+        category = 'grail' // €8000+ (Nike Dior)
+      } else if (p.base_price >= 3000) {
+        category = 'exclusive' // €3000+ (Travis Scott, Off-White)
+      } else if (p.base_price >= 1000) {
+        category = 'limited' // €1000+ (Yeezy Red October, etc)
+      } else {
+        category = 'rare' // Under €1000
       }
-    })) || []
+
+      return {
+        id: p.id,
+        name: p.name,
+        brand: 'Nike', // Simplification temporaire
+        category: category,
+        price: p.base_price,
+        resaleValue: p.resale_value || p.base_price * 1.2,
+        description: p.description || '',
+        story: p.story || '',
+        images: p.primary_image_url ? [p.primary_image_url] : [],
+        featured: p.is_featured || false,
+        stock: p.in_stock ? 10 : 0,
+        rarity: {
+          rating: p.rarity_score || 8
+        },
+        valueTrend: {
+          percentage: p.value_trend_percentage || 15
+        }
+      }
+    }) || []
   } catch (error) {
     console.error('Error in getAllProducts:', error)
     return []

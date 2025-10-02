@@ -1,119 +1,82 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { type NextRequest, NextResponse } from 'next/server'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
+
+// Define role-based route access
+const ROUTE_PERMISSIONS = {
+  '/ceo': ['ceo'],
+  '/seller': ['seller', 'ceo'],
+  '/worker': ['seller', 'ceo'],  // Worker is same as seller
+  '/client': ['client', 'seller', 'ceo'],  // All authenticated users
+  '/account': ['client', 'seller', 'ceo'],
+  '/checkout': ['client', 'seller', 'ceo'],
+  '/orders': ['client', 'seller', 'ceo']
+}
 
 export async function authSecurityMiddleware(request: NextRequest) {
-  const response = NextResponse.next();
-  const pathname = request.nextUrl.pathname;
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req: request, res })
 
-  // Create Supabase client
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const pathname = request.nextUrl.pathname
+
+    // Check if user is authenticated for protected routes
+    const isProtectedRoute = Object.keys(ROUTE_PERMISSIONS).some(route =>
+      pathname.startsWith(route)
+    )
+
+    // Redirect to login if accessing protected route without auth
+    if (isProtectedRoute && !session) {
+      const loginUrl = new URL('/auth/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
     }
-  );
 
-  // Get session
-  const { data: { session } } = await supabase.auth.getSession();
+    // Check role-based access if user is authenticated
+    if (session && isProtectedRoute) {
+      // Get user profile with role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
 
-  // Public routes that don't require authentication
-  const publicRoutes = [
-    '/',
-    '/sneakers',
-    '/exclusive',
-    '/limited',
-    '/about',
-    '/contact',
-    '/auth/login',
-    '/auth/register',
-    '/auth/forgot-password',
-    '/api/products',
-    '/api/stripe/webhook'
-  ];
+      const userRole = profile?.role || 'client'
 
-  // Check if current path is public
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-
-  // Role-based route protection
-  const routeProtection = {
-    '/ceo': 'ceo',
-    '/seller': 'seller',
-    '/account': 'client'
-  };
-
-  // Check if route requires specific role
-  for (const [route, requiredRole] of Object.entries(routeProtection)) {
-    if (pathname.startsWith(route)) {
-      if (!session) {
-        // Redirect to login if not authenticated
-        const url = request.nextUrl.clone();
-        url.pathname = '/auth/login';
-        url.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(url);
-      }
-
-      // Get user role from email
-      const email = session.user.email?.toLowerCase() || '';
-      let userRole = 'client';
-
-      if (email === 'ceo@li-lo.com') {
-        userRole = 'ceo';
-      } else if (email === 'seller@li-lo.com' || email.includes('seller')) {
-        userRole = 'seller';
-      }
-
-      // Check if user has required role
-      if (userRole !== requiredRole && requiredRole !== 'client') {
-        // CEO can access everything
-        if (userRole === 'ceo') {
-          continue;
+      // Check if user has permission for this route
+      for (const [route, allowedRoles] of Object.entries(ROUTE_PERMISSIONS)) {
+        if (pathname.startsWith(route)) {
+          if (!allowedRoles.includes(userRole)) {
+            // Redirect to unauthorized page
+            return NextResponse.redirect(new URL('/unauthorized', request.url))
+          }
+          break
         }
-
-        // Redirect to appropriate dashboard
-        const url = request.nextUrl.clone();
-        switch (userRole) {
-          case 'seller':
-            url.pathname = '/seller/dashboard';
-            break;
-          case 'client':
-            url.pathname = '/account/dashboard';
-            break;
-          default:
-            url.pathname = '/';
-        }
-        return NextResponse.redirect(url);
       }
+
+      // Add user role to headers for use in server components
+      res.headers.set('x-user-role', userRole)
     }
+
+    // Redirect authenticated users away from auth pages
+    if (session && (pathname === '/auth/login' || pathname === '/auth/register')) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+
+      const userRole = profile?.role || 'client'
+      const dashboardUrl = userRole === 'ceo' ? '/ceo' :
+                           userRole === 'seller' ? '/seller' :
+                           '/client'
+
+      return NextResponse.redirect(new URL(dashboardUrl, request.url))
+    }
+
+    return res
+  } catch (error) {
+    console.error('Auth security middleware error:', error)
+    return res
   }
-
-  // Security headers
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-  // CSP for additional security
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; " +
-    "style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data: https: blob:; " +
-    "font-src 'self' data:; " +
-    "connect-src 'self' https://api.stripe.com https://*.supabase.co wss://*.supabase.co; " +
-    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com"
-  );
-
-  return response;
 }

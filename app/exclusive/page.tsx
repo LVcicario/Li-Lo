@@ -23,7 +23,16 @@ export default function ExclusivePage() {
       const filtered = products
         .filter(p => p.category === 'exclusive' || p.category === 'grail')
         .slice(0, 6)
-      setExclusiveSneakers(filtered)
+
+      // If no products found with those categories, get the 6 most expensive
+      if (filtered.length === 0) {
+        const mostExpensive = products
+          .sort((a, b) => b.price - a.price)
+          .slice(0, 6)
+        setExclusiveSneakers(mostExpensive)
+      } else {
+        setExclusiveSneakers(filtered)
+      }
       setLoading(false)
     }
     loadProducts()

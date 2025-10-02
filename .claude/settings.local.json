@@ -35,7 +35,17 @@
       "Bash(python:*)",
       "mcp__supabase__get_organization",
       "mcp__supabase__get_advisors",
-      "Bash(PORT=3000 node scripts/validate-site.mjs)"
+      "Bash(PORT=3000 node scripts/validate-site.mjs)",
+      "Bash(dir \"C:\\Users\\Administrator\\Documents\\GitHub\\Li-Lo\\app\\auth\")",
+      "Bash(dir \"C:\\Users\\Administrator\\Documents\\GitHub\\Li-Lo\\app\\seller\")",
+      "Bash(dir \"C:\\Users\\Administrator\\Documents\\GitHub\\Li-Lo\\app\\ceo\")",
+      "Bash(dir \"C:\\Users\\Administrator\\Documents\\GitHub\\Li-Lo\\app\")",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(find:*)",
+      "Bash(xargs:*)",
+      "Bash(while read file)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(for page in \"/\" \"/sneakers\" \"/exclusive\" \"/limited-edition\" \"/collections\" \"/cart\" \"/auth/login\" \"/auth/register\" \"/checkout\" \"/membership\" \"/about\")"
     ]
   },
   "enableAllProjectMcpServers": true,

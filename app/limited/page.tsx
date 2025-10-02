@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Timer, Lock, Unlock, TrendingUp } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { getAllProducts } from '@/lib/products-service'
+import { useCurrencyStore } from '@/lib/currency-store'
 
 export default function LimitedPage() {
   const [timeLeft, setTimeLeft] = useState({
@@ -14,57 +16,52 @@ export default function LimitedPage() {
     minutes: 32,
     seconds: 18
   })
+  const [limitedDrops, setLimitedDrops] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { format: formatPriceStore } = useCurrencyStore()
 
-  const limitedDrops = [
-    {
-      id: 1,
-      name: "SUPREME DUNK LOW",
-      price: 18000,
-      originalPrice: 12000,
-      image: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=800&h=800&fit=crop",
-      available: true,
-      stock: 3,
-      totalStock: 10,
-      dropTime: "48:00:00",
-      trend: "+45%"
-    },
-    {
-      id: 2,
-      name: "FEAR OF GOD RAID",
-      price: 8500,
-      originalPrice: 6000,
-      image: "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800&h=800&fit=crop",
-      available: true,
-      stock: 7,
-      totalStock: 25,
-      dropTime: "24:00:00",
-      trend: "+32%"
-    },
-    {
-      id: 3,
-      name: "UNION JORDAN 4",
-      price: 22000,
-      originalPrice: 15000,
-      image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&h=800&fit=crop",
-      available: false,
-      stock: 0,
-      totalStock: 15,
-      dropTime: "SOLD OUT",
-      trend: "+67%"
-    },
-    {
-      id: 4,
-      name: "SEAN WOTHERSPOON",
-      price: 35000,
-      originalPrice: 25000,
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=800&fit=crop",
-      available: true,
-      stock: 1,
-      totalStock: 5,
-      dropTime: "12:30:45",
-      trend: "+89%"
+  // Load limited edition sneakers from database
+  useEffect(() => {
+    async function loadProducts() {
+      const products = await getAllProducts()
+
+      // Filter for limited products or get expensive ones
+      let limited = products.filter(p => p.category === 'limited')
+
+      // If no limited products, get next 4 most expensive after top 6
+      if (limited.length === 0) {
+        limited = products
+          .sort((a, b) => b.price - a.price)
+          .slice(6, 10) // Get products 7-10 by price
+      }
+
+      // Transform to match the expected format
+      const transformed = limited.map((p, index) => ({
+        id: p.id,
+        name: p.name.toUpperCase(),
+        price: p.price,
+        originalPrice: Math.round(p.price * 0.7),
+        image: p.images[0] || '/placeholder-sneaker.jpg',
+        available: p.stock > 0,
+        stock: p.stock || Math.floor(Math.random() * 10),
+        totalStock: 25,
+        dropTime: p.stock === 0 ? 'SOLD OUT' : `${48 - index * 12}:00:00`,
+        trend: `+${p.valueTrend?.percentage || 45}%`
+      }))
+
+      setLimitedDrops(transformed.slice(0, 4))
+      setLoading(false)
     }
-  ]
+    loadProducts()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black pt-24">

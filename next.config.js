@@ -11,7 +11,6 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    qualities: [75, 90, 95, 100], // Add quality configurations
     remotePatterns: [
       {
         protocol: 'https',
@@ -20,6 +19,7 @@ const nextConfig = {
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: process.env.NODE_ENV === 'development',
   },
 
   // Experimental features for better performance
@@ -38,26 +38,29 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
 
-  // Output configuration
-  output: 'standalone',
+  // Disable standalone output for dev
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
 
-  // Webpack optimizations
-  webpack: (config, { isServer }) => {
-    // Optimize bundle size
+  // Webpack optimizations - simplified for dev
+  webpack: (config, { dev, isServer }) => {
+    // Skip complex optimizations in dev mode
+    if (dev) {
+      return config;
+    }
+
+    // Optimize bundle size for production only
     if (!isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
           default: false,
           vendors: false,
-          // Vendor chunk
           vendor: {
             name: 'vendor',
             chunks: 'all',
             test: /node_modules/,
             priority: 20,
           },
-          // Common chunk
           common: {
             name: 'common',
             minChunks: 2,
@@ -66,7 +69,6 @@ const nextConfig = {
             reuseExistingChunk: true,
             enforce: true,
           },
-          // UI components chunk
           ui: {
             name: 'ui',
             test: /[\\/]components[\\/]ui[\\/]/,

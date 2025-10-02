@@ -1,5 +1,4 @@
-import { REAL_SNEAKERS_DATABASE, type RealSneaker } from './sneaker-database';
-import { getAllSneakers } from './sneaker-database-extended';
+import { getAllSneakers, type RealSneaker } from './sneaker-database-extended';
 
 // StockX-style product images using actual product image URLs
 const PRODUCT_IMAGES = {
